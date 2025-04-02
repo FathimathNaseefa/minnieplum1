@@ -1,0 +1,320 @@
+<%- include("../../views/partials/user/header") %>
+
+<style>
+.cart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.cart-item img {
+    width: 100px;
+    height: auto;
+    border-radius: 5px;
+}
+
+.item-details {
+    flex-grow: 1;
+    padding: 0 15px;
+}
+
+.item-details h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.item-details p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px; 
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.quantity-control button {
+    background: #f07d9a;
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s ease-in-out;
+}
+
+.quantity-control button:hover {
+    background: #e65c00;
+}
+
+.quantity-control input {
+    width: 50px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    border: none;
+    background: transparent;
+    outline: none;
+}
+
+.btn-remove {
+    background: #f5170f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.cart-totals {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.btn-checkout {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #f07d9a;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-checkout:hover {
+    background: #eb0d57;
+}
+
+</style>
+                
+<main class="main">
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <h3>Shopping Cart</h3>
+                <div class="cart-container">
+                    <% if (data.length > 0) { %>
+                        <% for (let i = 0; i < data.length; i++) { %>
+                            <% if (data[i].productDetails && data[i].productDetails[0]) { %> 
+                                    <div class="cart-item" id="cart-item-<%= data[i].productDetails[0]._id %>">
+
+                                    <img src="/uploads/re-image/<%= data[i].productDetails[0].productImage[0] %>" alt="Product Image">
+                                       <div class="item-details">
+                                        <h5><%= data[i].productDetails[0].productName %></h5>
+                                        <p>Size: <%= data[i].size %></p>
+                                        <p>Color: <%= data[i].color %></p>
+                                        <p>
+                                            <% 
+                                              let salePrice = data[i].productDetails[0].salePrice; 
+                                              let finalPrice = data[i].finalPrice; // Use the finalPrice from cart which already has offer applied
+                                              let discountPercent = Math.round(((salePrice - finalPrice) / salePrice) * 100);
+                                            %>
+                                            <% if (discountPercent > 0) { %>
+                                              <s>₹<%= salePrice.toLocaleString('en-IN') %></s> 
+                                              ₹<%= finalPrice.toLocaleString('en-IN') %> 
+                                              <span style="color: red; font-weight: bold;">
+                                                (<%= discountPercent %>% OFF)
+                                              </span>
+                                            <% } else { %>
+                                              ₹<%= salePrice.toLocaleString('en-IN') %> 
+                                            <% } %>
+                                          </p>
+                                        <div class="quantity-control">
+                                          <button onclick="changeQuantity('<%= data[i].productDetails[0]._id %>', '<%= data[i].quantity %>', -1, '<%= data[i].finalPrice %>', '<%= data[i].productDetails[0].quantity %>', '<%= data[i].productDetails[0].maxPerPerson %>')">-</button>
+                                          <input id="cartProductQuantity-<%= data[i].productDetails[0]._id %>" value="<%= data[i].quantity %>" readonly>
+                                          <button onclick="changeQuantity('<%= data[i].productDetails[0]._id %>', '<%= data[i].quantity %>', 1, '<%= data[i].finalPrice %>', '<%= data[i].productDetails[0].quantity %>', '<%= data[i].productDetails[0].maxPerPerson %>')">+</button>
+                                        </div>
+                                      </div>
+                                      <button class="btn-remove" onclick="confirmRemove('<%= data[i].productDetails[0]._id %>')">Remove</button>
+                                    </div>
+                                  <% } %> 
+                                <% } %>
+                              <% } else { %>
+                                <p class="lead text-center">No item found in Cart</p>
+                              <% } %>
+                    </div>
+                </div>
+                <div class="cart-totals mt-4">
+                   <h4>PRICE DETAILS</h4>
+                   <p>Total: ₹<span id="total"><%= grandTotal %></span></p>
+                   <a href="javascript:void(0)" class="btn-checkout" onclick="handleCheckout(<%= data.length %>)">Proceed To Checkout</a> 
+                </div>
+        </div>
+    </section>
+</main>
+
+
+<div id="cartEmptyModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cart is Empty</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>No products available in the cart. Please add items before proceeding to checkout.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+    function changeQuantity(productId, currentQuantity, count, finalPrice, productStock, maxPerPerson) {
+        const quantityInput = document.getElementById('cartProductQuantity-' + productId);
+        let newQuantity = parseInt(quantityInput.value) + count;
+
+        // Ensure quantity does not exceed maxPerPerson limit
+        if (newQuantity > maxPerPerson) {
+            Swal.fire({
+                title: 'Limit Reached!',
+                text: `You can only purchase up to ${maxPerPerson} units of this product.`,
+                icon: 'warning',
+                timer: 3000
+            });
+            return;
+        }
+
+        // Ensure quantity does not exceed stock availability
+        if (newQuantity > productStock) {
+            Swal.fire({
+                title: 'Out of Stock!',
+                text: 'No more stock available.',
+                icon: 'error',
+                timer: 3000
+            });
+            return;
+        }
+
+        if (newQuantity < 1) {
+            return;
+        }
+
+        // Send AJAX request to update quantity
+        $.ajax({
+            url: '/changeQuantity',
+            method: 'POST',
+            data: {
+                productId: productId,
+                quantity: newQuantity,
+                count: count
+            },
+            success: (response) => {
+                if (response.status) {
+                    quantityInput.value = newQuantity;
+                    // Calculate the new total based on finalPrice
+                    const totalElement = document.getElementById('total');
+                    const currentTotal = parseFloat(totalElement.innerHTML);
+                    const newTotal = currentTotal + (count * finalPrice);
+                    totalElement.innerHTML = newTotal.toFixed(2);
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.error,
+                        icon: 'error',
+                        timer: 3000
+                    });
+                }
+            },
+            error: (error) => {
+                console.error("Error updating cart:", error);
+            }
+        });
+    }
+
+
+    
+
+    function confirmRemove(productId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/deleteItem?id=${productId}`,
+                method: 'GET',
+                success: (response) => {
+                    if (response.status) {
+                        $(`#cart-item-${productId}`).remove();
+                        
+                        // ✅ Update the total dynamically with correct final price
+                        $('#total').text(response.grandTotal.toFixed(2));
+
+                        if (response.cartEmpty) {
+                            $('.cart-container').html('<p class="lead text-center">No item found in Cart</p>');
+                            $('.cart-totals').hide();
+                        }
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.error,
+                            icon: 'error',
+                            timer: 3000
+                        });
+                    }
+                },
+                error: (error) => {
+                    console.error("Error removing cart item:", error);
+                }
+            });
+        }
+    });
+}
+
+function handleCheckout(cartLength) {
+        if (cartLength === 0) {
+            $("#cartEmptyModal").modal("show"); // Show Bootstrap Modal for Empty Cart
+        } else {
+            window.location.href = "/checkout"; // ✅ Redirect to Checkout Page
+        }
+    }
+
+</script> 
+
+<%- include("../../views/partials/user/footer") %>

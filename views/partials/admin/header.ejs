@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/x-icon" href="#">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=poppins:wght@400;600&display=swap");
+        *{
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            box-sizing: border-box;
+            font-family: "poppins",sans-serif;
+        }
+         body{
+            display: flex;
+        } 
+        .sidebar{
+            position: sticky;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            height: 100vh;
+            padding: 0 1.7rem;
+            color: #fff;
+            overflow: hidden;
+            transition: all 0.5s linear;
+            background-color: rgba(113,99,186,255);
+        }
+
+    .sidebar:hover{
+        width: 240px;
+        transition: 0.5s;
+    }
+        .logo{
+            height: 80px;
+            padding: 16px;
+        }
+        .menu{
+            height: 88%;
+            position:relative;
+            list-style: none;
+            padding: 0;
+        }
+        .menu li{
+            padding: 0.4rem;
+            margin: 8px 0;
+            border-radius: 8px;
+            transition: all 0.5s ease-in-out;
+        }
+        .menu li:hover,
+        .active{
+            background-color: rgb(107, 39, 163);
+        }
+        .menu a{
+            color: #fff;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap:1.5rem;
+        }
+        .menu a span{
+            overflow: hidden;
+        }
+        .menu a i{
+            font-size: 1.2rem;
+        }
+        .logout{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+        .main--content{
+            position: relative;
+            background: rgb(207, 202, 202);
+            width: 100%;
+            padding: 1rem;
+        }
+        .header--wrapper img{
+            width: 50px;
+            height:50px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .header--wrapper{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px 2rem;
+            margin-bottom: 1rem;
+        }
+        .header--title{
+            color: rgba(113,99,186,255);
+        }
+        .user--info{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .search--box{
+            background: rgba(237,237,237);
+            border-radius: 15px;
+            color: rgba(113,99,186,255);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+        }
+        .serach--box input{
+            background: transparent;
+            padding: 10px;
+        }
+        .search--box i{
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.5s ease-out;
+        }
+        .search--box i:hover{
+            transform: scale(1.2);
+        }
+        .card--container{
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        .card--wrapper{
+            display: flex;
+            flex-wrap: wrap;
+            
+            gap: 1rem;
+        }
+        .main--title{
+            color: rgba(113,99,186,255);
+            padding-bottom: 10px;
+            font-size:
+             15px;
+        } 
+
+        .payment--card{
+            background-color: rgb(229,223,223);
+            border-radius: 10px;
+            padding: 1.2rem;
+            width: 220px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.5s ease-in-out;
+        }
+        .payment--card:hover{
+            transform: translate(-5px);
+        }
+
+        .card--header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .amount{
+            display: flex;
+            flex-direction: column;
+        }
+        .title{
+            font-size: 12px;
+            font-weight: 200;
+        }
+        .amount--value{
+            font-size: 24px;
+            font-family: "Courier New", Courier,monospace;
+            font-weight: 600;
+        }
+        .icon{
+            color: #fff;
+            padding: 1rem;
+            height: 60px ;
+            width: 60px;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            background-color: red;
+        }
+        .card-detail{
+            font-size: 18px;
+            color: #b4b1b1;
+            letter-spacing: 2px;
+            font-family: "Courier New", Courier,monospace;
+
+        }
+        .light-red{
+            background: rgb(214, 141, 164);
+        }
+        .light-purple{
+            background: rgb(175, 124, 175);
+        }
+        .light-green{
+            background: rgb(134, 187, 91);
+        }
+        .light-blue{
+            background: rgb(123, 123, 184);
+        }
+        .dark-red{
+            background: red;
+        }
+        .dark-purple{
+            background: purple;
+        }
+        .dark-green{
+            background: green;
+        }
+        .dark-blue{
+            background: blue;
+        }
+        .tabular--wrapper{
+            background: #fff;
+            margin-top: 1rem;
+            border-radius: 10px;
+            padding: 2rem;
+        }
+        .table-container{
+            width: 100%;
+        }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead{
+            background: rgba(113,99,186,255);
+            color: #fff;
+        }
+        th{
+            padding: 15px;
+            text-align: left;
+        }
+        tbody{
+            background: #f2f2f2;
+        }
+        td{
+            padding: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+        tr:nth-child(even){
+            background: #fff;
+        }
+        tfoot{
+            background: rgba(113,99,186,255);
+            font-weight: bold;
+            color: #fff;
+        }
+        tfoot td{
+            padding: 15px;
+        }
+        .table-container button{
+            color: green;
+            background: none;
+            cursor:pointer;
+        }
+
+</style>
+</head>
+<body>
+            <div class="sidebar">
+                <img src="/img/logob.png" class="logo" alt="Mp" style="height: 70px;">
+                <ul class="menu">
+                    <li data-page="dashboard">
+                        <a href="/admin">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li data-page="users">
+                        <a href="/admin/users">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li data-page="category">
+                        <a href="/admin/category">
+                            <i class="fas fa-list"></i>
+                            <span>Category</span>
+                        </a>
+                    </li>
+                    <li data-page="brand">
+                        <a href="/admin/brand">
+                            <i class="fas fa-list"></i>
+                            <span>Brands</span>
+                        </a>
+                    </li>
+                    <li data-page="addProducts">
+                        <a href="/admin/addProducts">
+                            <i class="fas fa-boxes"></i>
+                            <span>Add product</span>
+                        </a>
+                    </li>
+                    <li data-page="products">
+                        <a href="/admin/products">
+                            <i class="fas fa-box"></i>
+                            <span>Products</span>
+                        </a>
+                    </li>
+                    <li data-page="orderList">
+                        <a href="/admin/orderList">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Orders</span>
+                        </a>
+                    </li>
+                    <li data-page="inventory">
+                        <a href="/admin/inventory">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Inventory</span>
+                        </a>
+                    </li>
+                    <li data-page="offers1">
+                        <a href="/admin/offers1">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Manage Offers</span>
+                        </a>
+                    </li>
+                    <li data-page="coupon">
+                        <a href="/admin/coupon">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Coupon</span>
+                        </a>
+                    </li>
+                    <li data-page="sales-report">
+                        <a href="/admin/sales-report">
+                            <i class="fas fa-flag"></i>
+                            <span>Sales</span>
+                        </a>
+                    </li>
+                    <li data-page="Wallet">
+                        <a href="/admin/wallet">
+                            <i class="fas fa-flag"></i>
+                            <span>wallet</span>
+                        </a>
+                    </li>
+                    
+                    <li class="logout">
+                        <a href="/admin/logout">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </ul>
+    </div>
+    <div class="main--content">
+        <div class="header--wrapper">
+            <div class="header--title">
+                <span>Admin</span>
+                <!-- <h2>Dashboard</h2> -->
+            </div>
+            <div class="user--info">
+                <div class="search--box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Search"/>
+            </div>
+            <img src="../img/about/pro.jpeg" alt="photo" width="20px"/>
+        </div>
+    </div>
+    <script>
+        // Get the current page from the backend
+        const currentPage = "<%= currentPage %>";
+    
+        // Find the corresponding <li> element and add the 'active' class
+        const menuItems = document.querySelectorAll(".menu li");
+        menuItems.forEach((item) => {
+            if (item.getAttribute("data-page") === currentPage) {
+                item.classList.add("active");
+            }
+        });
+    </script>
+    

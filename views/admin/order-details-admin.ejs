@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Order Details</title>
+    <link rel="stylesheet" href="/css/style.css"> <!-- Link to your CSS file -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .order-container {
+            width: 60%;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .order-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #007bff;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #accept-btn {
+           background-color: green;
+           color: white;
+           border: none;
+           padding: 10px 15px;
+           font-size: 16px;
+           cursor: pointer;
+           border-radius: 5px;
+           transition: background 0.3s ease;
+        }
+
+        #accept-btn:hover {
+            background-color: darkgreen;
+        }
+
+        #reject-btn {
+           background-color: red;
+           color: white;
+           border: none;
+           padding: 10px 15px;
+           font-size: 16px;
+           cursor: pointer;
+           border-radius: 5px;
+           transition: background 0.3s ease;
+        }
+
+       #reject-btn:hover {
+          background-color: darkred;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Order Details</h1>
+
+    <div class="order-container">
+        <div class="order-info">
+            <p><strong>Order ID:</strong> <%= orderId %></p>
+            <p><strong>User ID:</strong> <%= orders.userId.name %></p>
+            <p><strong>Status:</strong> <%= orders.status %></p>
+            <p><strong>Payment Method:</strong> <%= orders.paymentMethod %></p>
+            <p><strong>Total Amount:</strong> ₹<%= finalAmount %></p>
+        </div>
+
+        <h2>Ordered Items</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>product Name:</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.items.forEach(item => { %>
+                    <tr>
+                        
+                        <td><%= item.productId ? item.productId.productName : 'Product Not Found' %></td> <!-- ✅ Ensure safe access -->
+                        <td><%= item.quantity %></td>
+                        <td>₹<%= item.finalPrice %></td>
+                        <td>₹<%= item.quantity * item.finalPrice %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <p class="total">Total Amount: ₹<%= finalAmount %></p>
+
+        <!-- Add Accept and Reject Buttons -->
+        <% if (orders.status === 'Return Requested') { %>
+            <div class="action-buttons">
+                <button id="accept-btn">Accept Return</button>
+                <button id="reject-btn">Reject Return</button>
+            </div>
+        <% } %>
+        
+    </div>
+    <p> Order ID: <%= orders._id %></p>
+    
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Use _id from EJS instead of orderId
+    const orderId = "<%= orders._id %>"; 
+
+    // Ensure the correct URL is used
+    console.log("Final Debug Order ID:", orderId);
+    console.log("Fetching URL:", `/admin/orders/${orderId}/status`);
+
+    function updateOrderStatus(status) {
+        fetch(`/admin/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status }),
+        })
+        .then(response => {
+            console.log("Fetch Response:", response);
+            if (!response.ok) {
+                throw new Error(`Network response was not ok. Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Response Data:", data);
+            
+            // Show success message using SweetAlert
+            Swal.fire({
+                title: "Success!",
+                text: `Return request ${status}`,
+                icon: "success",
+                confirmButtonText: "OK"
+            }).then(() => {
+                window.location.reload(); // Refresh page after success
+            });
+
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+            
+            // Show error message using SweetAlert
+            Swal.fire({
+                title: "Error!",
+                text: "An error occurred while updating the status",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        });
+    }
+
+    // Attach event listeners to buttons
+    document.getElementById('accept-btn').addEventListener('click', () => {
+        updateOrderStatus('Return accepted');
+    });
+
+    document.getElementById('reject-btn').addEventListener('click', () => {
+        updateOrderStatus('Return rejected');
+    });
+</script>
+
+    
+    
+</body>
+</html>

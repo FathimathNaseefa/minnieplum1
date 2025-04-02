@@ -1,0 +1,567 @@
+<%- include("../../views/partials/admin/header") %>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=poppins:wght@400;600&display=swap");
+        *{
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            box-sizing: border-box;
+            font-family: "poppins",sans-serif;
+        }
+         body{
+            display: flex;
+        } 
+        .sidebar{
+            position: sticky;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            height: 100vh;
+            padding: 0 1.7rem;
+            color: #fff;
+            overflow: hidden;
+            transition: all 0.5s linear;
+            background-color: rgba(113,99,186,255);
+        }
+
+        .sidebar:hover{
+            width: 240px;
+            transition: 0.5s;
+    }
+        .logo{
+            height: 80px;
+            padding: 16px;
+        }
+        .menu{
+            height: 88%;
+            position:relative;
+            list-style: none;
+            padding: 0;
+        }
+        .menu li{
+            padding: 0.4rem;
+            margin: 8px 0;
+            border-radius: 8px;
+            transition: all 0.5s ease-in-out;
+        }
+        .menu li:hover,
+        .active{
+            background-color: rgb(107, 39, 163);
+        }
+        .menu a{
+            color: #fff;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap:1.5rem;
+        }
+        .menu a span{
+            overflow: hidden;
+        }
+        .menu a i{
+            font-size: 1.2rem;
+        }
+        .logout{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+        .main--content{
+            position: relative;
+            background: rgb(207, 202, 202);
+            width: 100%;
+            padding: 1rem;
+        }
+        .header--wrapper img{
+            width: 50px;
+            height:50px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .header--wrapper{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px 2rem;
+            margin-bottom: 1rem;
+        }
+        .header--title{
+            color: rgba(113,99,186,255);
+        }
+        .user--info{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .search--box{
+            background: rgba(237,237,237);
+            border-radius: 15px;
+            color: rgba(113,99,186,255);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+        }
+        .serach--box input{
+            background: transparent;
+            padding: 10px;
+        }
+        .search--box i{
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.5s ease-out;
+        }
+        .search--box i:hover{
+            transform: scale(1.2);
+        }
+        .card--container{
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        .card--wrapper{
+            display: flex;
+            flex-wrap: wrap;
+            
+            gap: 1rem;
+        }
+        .main--title{
+            color: rgba(113,99,186,255);
+            padding-bottom: 10px;
+            font-size:
+             15px;
+        } 
+
+        .payment--card{
+            background-color: rgb(229,223,223);
+            border-radius: 10px;
+            padding: 1.2rem;
+            width: 220px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.5s ease-in-out;
+        }
+        .payment--card:hover{
+            transform: translate(-5px);
+        }
+
+        .card--header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .amount{
+            display: flex;
+            flex-direction: column;
+        }
+        .title{
+            font-size: 12px;
+            font-weight: 200;
+        }
+        .amount--value{
+            font-size: 24px;
+            font-family: "Courier New", Courier,monospace;
+            font-weight: 600;
+        }
+        .icon{
+            color: #fff;
+            padding: 1rem;
+            height: 60px ;
+            width: 60px;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            background-color: red;
+        }
+        .card-detail{
+            font-size: 18px;
+            color: #b4b1b1;
+            letter-spacing: 2px;
+            font-family: "Courier New", Courier,monospace;
+
+        }
+        .light-red{
+            background: rgb(214, 141, 164);
+        }
+        .light-purple{
+            background: rgb(175, 124, 175);
+        }
+        .light-green{
+            background: rgb(134, 187, 91);
+        }
+        .light-blue{
+            background: rgb(123, 123, 184);
+        }
+        .dark-red{
+            background: red;
+        }
+        .dark-purple{
+            background: purple;
+        }
+        .dark-green{
+            background: green;
+        }
+        .dark-blue{
+            background: blue;
+        }
+        .tabular--wrapper{
+            background: #fff;
+            margin-top: 1rem;
+            border-radius: 10px;
+            padding: 2rem;
+        }
+        .table-container{
+            width: 100%;
+        }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead{
+            background: rgba(113,99,186,255);
+            color: #fff;
+        }
+        th{
+            padding: 15px;
+            text-align: left;
+        }
+        tbody{
+            background: #f2f2f2;
+        }
+        td{
+            padding: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+        tr:nth-child(even){
+            background: #fff;
+        }
+        tfoot{
+            background: rgba(113,99,186,255);
+            font-weight: bold;
+            color: #fff;
+        }
+        tfoot td{
+            padding: 15px;
+        }
+        .table-container button{
+            color: green;
+            background: none;
+            cursor:pointer;
+        }
+
+        body {
+           font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        h3 {
+           font-size: 24px;
+           color: #333;
+           text-align: center;
+           margin-top: 20px;
+        }
+
+        form {
+             background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        form input,
+        form select,
+        form button {
+           width: 100%;
+           padding: 10px;
+           margin: 10px 0;
+           border: 1px solid #ccc;
+           border-radius: 5px;
+          font-size: 16px;
+        }
+
+       form button {
+            background-color: #4CAF50;
+           color: white;
+           cursor: pointer;
+           border: none;
+           font-size: 18px;
+        }
+
+       form button:hover {
+            background-color: #45a049;
+        }
+
+       table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+         table th, table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table button {
+            background-color: #2575ec;
+            color: white;
+            border: none;
+             padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+       th{
+            background-color: blue;
+        }
+
+        table button:hover {
+            background-color: #c0392b;
+        }
+
+        /* Modal Styles */
+        #editModal {
+            display: none;
+            position: fixed;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(0, 0, 0, 0.5);
+           justify-content: center;
+           align-items: center;
+        }
+
+      .modal-content {
+          background-color: #fff;
+          padding: 20px;
+          border-radius: 8px;
+          width: 50%;
+          max-width: 600px;
+          position: relative;
+        }
+
+       .close {
+          position: absolute;
+          top: 10px;
+          right: 20px;
+          font-size: 30px;
+          cursor: pointer;
+}
+
+        /* Button Styles */
+        button {
+          font-size: 16px;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        button[type="submit"] {
+           background-color: #4CAF50;
+           color: white;
+           border: none;
+           font-size: 18px;
+        }
+        table th {
+           background-color: #2952da;  
+        }
+
+        button[type="submit"]:hover {
+           background-color: #45a049;
+        }
+
+        button[type="button"] {
+           background-color: #f39c12;
+           color: white;
+           border: none;
+        }
+
+       button[type="button"]:hover {
+            background-color: #e67e22;
+        }
+</style>
+
+<div id="error-message" style="display: none;" class="alert alert-danger"></div>
+
+<div class="form-container">
+  <div class="row">
+    <div class="col-md-4">
+      <form id="product-offer-form" method="POST" class="horizontal-form">
+        <select name="productId" id="productId" required>
+          <% products.forEach(product => { %>
+            <option value="<%= product._id %>"><%= product.productName %></option>
+          <% }); %>
+        </select>
+        <input type="number" name="discountValue" id="discountValue" placeholder="Discount %" required>
+        <input type="date" name="expiry" id="expiry" required>
+        <button type="submit">Add Offer</button>
+      </form>
+    </div>
+    <div class="col-md-8">
+      <table>
+        <tr>
+          <th>Product</th>
+          <th>Discount</th>
+          <th>Expiry</th>
+          <th>Action</th>
+        </tr>
+        <% pdtOffers.forEach(offer => { %>
+          <tr>
+            
+            <td><%= offer.productId ? offer.productId.productName : 'Product Deleted' %></td>
+
+            <td><%= offer.discountValue %>%</td>
+            <td><%= new Date(offer.expiry).toLocaleDateString('en-GB') %></td>
+            <td>
+              <button onclick="confirmDelete('<%= offer._id %>', this.closest('tr'))">Delete</button>
+            </td>
+          </tr>
+        <% }); %>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+    function showError(message) {
+        const errorMessageElement = document.getElementById('error-message');
+        errorMessageElement.innerText = message;
+        errorMessageElement.style.display = 'block';
+    }
+    
+    // Handle form submission
+    document.getElementById('product-offer-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+    
+        const formData = new FormData(this);
+        const formObject = {};
+        formData.forEach((value, key) => {
+            formObject[key] = value;
+        });
+    
+        const discountValue = parseFloat(formObject.discountValue);
+        const expiryDate = new Date(formObject.expiry);
+        const currentDate = new Date();
+    
+        // Check if the discount is 100%
+        if (discountValue === 100) {
+            showError("Discount cannot be 100%. Please apply a valid discount value.");
+            return;
+        }
+    
+        // Check if the expiry date is in the past
+        if (expiryDate < currentDate) {
+            showError("The expiry date has already passed. Please choose a valid future date.");
+            return;
+        }
+    
+        try {
+            const response = await fetch('/admin/add-product-offer', {
+                method: 'POST',
+                body: new URLSearchParams(formObject)
+            });
+    
+            const data = await response.json();
+    
+            if (data.success) {
+                // Show success message or refresh the page
+                Swal.fire('Success', data.message, 'success').then(() => location.reload());
+            } else {
+                // Show error message in frontend
+                showError(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('An error occurred while adding the offer.');
+        }
+    });
+    
+    function confirmDelete(offerId, offerRow) {
+        // SweetAlert2 confirmation dialog
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, keep it',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If confirmed, send the delete request using AJAX
+                fetch('/admin/delete-product-offer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ offerId: offerId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // On success, remove the offer row from the table
+                        offerRow.remove();  // Removes the row from the DOM
+                        Swal.fire(
+                            'Deleted!',
+                            'Your offer has been deleted.',
+                            'success'
+                        );
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            'There was an issue deleting the offer.',
+                            'error'
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting the offer:', error);
+                    Swal.fire(
+                        'Error!',
+                        'There was an issue deleting the offer.',
+                        'error'
+                    );
+                });
+            }
+        });
+    }
+    </script>
+    
+<%- include("../../views/partials/admin/footer") %>

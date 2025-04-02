@@ -1,0 +1,201 @@
+<%- include("../../views/partials/user/header") %>
+<style>
+        .contain {
+           background: #fff;
+           padding: 25px;
+           border-radius: 12px;
+           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+           width: 430px;
+           text-align: center;
+           margin-top: 150px;
+
+    /* Centering */
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        .error {
+            color: #d9534f;
+            font-size: 13px;
+            margin-top: 5px;
+            display: block;
+            text-align: left;
+        }
+        label {
+            display: block;
+            text-align: left;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #444;
+        }
+        input[type="text"], input[type="checkbox"] {
+            width: calc(100% - 16px);
+            padding: 12px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.3s;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"]:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        /* Submit Button */
+        button {
+            width: 100%;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+            input[type="text"], button {
+                font-size: 14px;
+            }
+        }
+    </style>
+    <script>
+        function validateForm(event) {
+            event.preventDefault(); // Prevent form submission until validation is complete
+
+            const fields = ["name", "addressLine1", "city", "state", "postalCode", "country", "phoneNumber"];
+            let isValid = true;
+
+            // Reset error messages
+            fields.forEach(field => {
+                document.getElementById(field + "-error").textContent = "";
+            });
+
+            // Get values
+            const name = document.getElementById("name").value.trim();    
+            const addressLine1 = document.getElementById("addressLine1").value.trim();
+            const city = document.getElementById("city").value.trim();    
+            const state = document.getElementById("state").value.trim();  
+            const postalCode = document.getElementById("postalCode").value.trim();
+            const country = document.getElementById("country").value.trim();
+            const phoneNumber = document.getElementById("phoneNumber").value.trim();
+
+            // Validation patterns
+            const namePattern = /^[A-Za-z\s]{3,}$/;  // Name should be at least 3 characters
+        const cityStatePattern = /^[A-Za-z\s]+$/;  // City and state should contain only letters and spaces
+            const postalPattern = /^\d{6}$/;
+            const phonePattern = /^\d{10}$/;
+
+            // Validate each field
+            if (!name) {
+                document.getElementById("name-error").textContent = "Full Name is required!";
+                isValid = false;
+            } else if (!namePattern.test(name)) {
+                document.getElementById("name-error").textContent = "Invalid Name! Only letters and spaces allowed.";
+                isValid = false;
+            }
+
+            if (!addressLine1) {
+                document.getElementById("addressLine1-error").textContent = "Address Line 1 is required!";
+                isValid = false;
+            }
+
+            if (!city) {
+                document.getElementById("city-error").textContent = "City is required!";
+                isValid = false;
+            } else if (!cityStatePattern.test(city)) {
+                document.getElementById("city-error").textContent = "Invalid City! Only letters and spaces allowed.";
+                isValid = false;
+            }
+
+            if (!state) {
+                document.getElementById("state-error").textContent = "State is required!";
+                isValid = false;
+            } else if (!cityStatePattern.test(state)) {
+                document.getElementById("state-error").textContent = "Invalid State! Only letters and spaces allowed.";
+                isValid = false;
+            }
+
+            if (!postalCode) {
+                document.getElementById("postalCode-error").textContent = "Postal Code is required!";
+                isValid = false;
+            } else if (!postalPattern.test(postalCode)) {
+                document.getElementById("postalCode-error").textContent = "Invalid Postal Code! Must be 6 digits.";
+                isValid = false;
+            }
+
+            if (!country) {
+                document.getElementById("country-error").textContent = "Country is required!";
+                isValid = false;
+            }
+
+            if (!phoneNumber) {
+                document.getElementById("phoneNumber-error").textContent = "Phone Number is required!";
+                isValid = false;
+            } else if (!phonePattern.test(phoneNumber)) {
+                document.getElementById("phoneNumber-error").textContent = "Invalid Phone Number! Must be 10 digits.";
+                isValid = false;
+            }
+
+            // Submit form if all validations pass
+            if (isValid) {
+                document.getElementById("edit-address-form").submit();    
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="contain" style="background-color:#e4a2b0">
+        <h2 style="background-color:#b8074b ;">Edit Address</h2>
+
+        <form id="edit-address-form" action="/editAddress" method="POST" onsubmit="validateForm(event)">
+            <input type="hidden" name="id" value="<%= address ? address._id : '' %>" />
+
+            <label>Full Name:</label>
+            <input type="text" id="name" name="name" value="<%= address ? address.name : '' %>" required />
+            <span class="error" id="name-error"></span>
+
+            <label>Address Line 1:</label>
+            <input type="text" id="addressLine1" name="addressLine1" value="<%= address ? address.addressLine1 : '' %>" required />
+            <span class="error" id="addressLine1-error"></span>
+
+            <label>City:</label>
+            <input type="text" id="city" name="city" value="<%= address ? address.city : '' %>" required />
+            <span class="error" id="city-error"></span>
+
+            <label>State:</label>
+            <input type="text" id="state" name="state" value="<%= address ? address.state : '' %>" required />
+            <span class="error" id="state-error"></span>
+
+            <label>Postal Code:</label>
+            <input type="text" id="postalCode" name="postalCode" value="<%= address ? address.postalCode : '' %>" required />
+            <span class="error" id="postalCode-error"></span>
+
+            <label>Country:</label>
+            <input type="text" id="country" name="country" value="<%= address ? address.country : '' %>" required />
+            <span class="error" id="country-error"></span>
+
+            <label>Phone Number:</label>
+            <input type="text" id="phoneNumber" name="phoneNumber" value="<%= address ? address.phoneNumber : '' %>" required />
+            <span class="error" id="phoneNumber-error"></span>
+
+            <button type="submit">Update Address</button>
+        </form>
+    </div>
+   </body>
+</html>
+<%- include("../../views/partials/user/footer") %>

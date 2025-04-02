@@ -1,0 +1,78 @@
+<%- include("../../views/partials/user/header") %>
+
+<section class="content-main mt-80 mb-80" style="margin-top: 100px;">
+   <div class="card mx-auto card-login col-4" style="background-color:#e4a2b0 ;">
+       <div class="card-body">
+           <h4 class="card-title mb-4">Enter Current Email</h4>
+
+         <% if (typeof message !== 'undefined' && message.length > 0) { %>
+            <div class="alert alert-danger text-center" id="server-error"> 
+                
+                <%= message %>
+            </div>
+        <% } %>
+
+
+           <form method="post" action="/change-email" onsubmit="return validateLoginForm()">
+               <div class="mb-3">
+                    <input class="form-control" name="email" placeholder="Email" type="text" id="email"> 
+                   
+
+                   <div class="error-message" id="email-error"></div>
+               </div>
+               <div class="mb-4">
+                   <button type="submit" class="btn btn-primary w-100">Verify</button>
+               </div>
+           </form>
+         
+         
+       </div>
+   </div>
+</section>
+<script>
+   
+   
+
+    function validateLoginForm() {
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('email-error');
+    const emailValue = emailInput.value.trim();
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;  // Improved regex
+
+    // Reset previous errors
+    emailError.textContent = '';
+    emailInput.classList.remove('is-invalid');
+
+    if (emailValue === '') {
+        emailError.textContent = 'Please enter your email.';
+        emailInput.classList.add('is-invalid');
+        return false;
+    } else if (!emailPattern.test(emailValue)) {  // Use test() for better readability
+        emailError.textContent = 'Please enter a valid email address.';
+        emailInput.classList.add('is-invalid');
+        return false;
+    }
+
+    return true;  // If everything is fine, allow form submission
+}
+
+// Optional: Real-time validation (removes error when user types)
+document.getElementById('email').addEventListener('input', function () {
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('email-error');
+    const serverError = document.getElementById('server-error');
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (emailPattern.test(emailInput.value.trim())) {
+        emailError.textContent = '';
+        emailInput.classList.remove('is-invalid');
+
+         if (serverError) {
+            serverError.style.display = 'none';
+         }
+
+    }
+});
+
+</script>
+<%- include("../../views/partials/user/footer") %>

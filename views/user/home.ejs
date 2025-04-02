@@ -1,0 +1,220 @@
+<%-include("../../views/partials/user/header")%>
+<style>
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 products per row */
+    gap: 20px; /* Adjust spacing between products */
+    width: 90%; /* Reduce width to 90% */
+    max-width: 1200px; /* Limit maximum width */
+    margin: 0 auto; /* Center align the grid */
+    padding: 20px;
+    
+  }
+
+  .product-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .product-card img {
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+
+  .wishlist-btn {
+    cursor: pointer;
+    color: red;
+    font-size: 20px;
+    float: right;
+  }
+
+  /* Responsive design for smaller screens */
+  @media (max-width: 1024px) {
+    .product-grid {
+      grid-template-columns: repeat(3, 1fr); /* 3 products per row */
+    }
+  }
+
+  @media (max-width: 768px) {
+    .product-grid {
+      grid-template-columns: repeat(2, 1fr); /* 2 products per row */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .product-grid {
+      grid-template-columns: repeat(1, 1fr); /* 1 product per row */
+    }
+  }
+  </style>
+    <!-- Hero Section Begin -->
+    <section class="hero">
+        <div class="hero__slider owl-carousel">
+            
+                <div class="container" style="background-color: pink;">
+                    
+                    <div class="row">
+                        
+                        <div class="col-xl-5 col-lg-7 col-md-8">
+                            <div class="hero__text">
+                                <h6>Summer Collection</h6>
+                                <h2>Fall - Winter Collections 2030</h2>
+                                <h5>Trusted by over 50 lakh Moms!</h5>
+                                <br>
+                                <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+                                
+                                <div class="hero__social">
+                                    <a href="#"><i class="fa fa-facebook"></i></a>
+                                    <a href="#"><i class="fa fa-twitter"></i></a>
+                                    <a href="#"><i class="fa fa-pinterest"></i></a>
+                                    <a href="#"><i class="fa fa-instagram"></i></a>
+                                </div>
+                            </div>
+                         </div> 
+                        <div class="col-xl-5 col-lg-7 col-md-8">
+                           <div class="hero__items set-bg" data-setbg="img/hero/denimfull.jpg" style="height:500px"></div>
+                        </div>
+                        <div class="col-xl-2">
+                            <h1 class="hero_lorem">Kids fashion<p>All you need for your little Ones is here!</p></h1></div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </section><br><br><br><br><br><br><br>
+    <!-- Main Section End -->
+
+    
+    <h1 style="text-align: center;">Latest Arrivals</h1>
+    <main class="product-grid">
+    
+        
+    <% for (let i = 0; i < products.length; i++) { %>
+        <div class="product-card">
+            <span class="wishlist-btn">❤️</span>
+            <a href="/productDetails?id=<%= products[i]._id %>">
+                <img src="/uploads/re-image/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>" />
+                <h5><%= products[i].productName %></h5>
+                <p>Brand: <%= products[i].brand ? products[i].brand.brandName : 'No Brand' %></p>
+  
+                <% 
+                  let salePrice = products[i].salePrice;
+                  let finalPrice = products[i].finalPrice || salePrice;
+                  let discountPercent = salePrice > finalPrice ? Math.round(((salePrice - finalPrice) / salePrice) * 100) : 0;
+                %>
+  
+                <% if (discountPercent > 0) { %>
+                    <s>₹<%= salePrice.toLocaleString('en-IN') %></s>
+                    ₹<%= finalPrice.toLocaleString('en-IN') %>
+                    <span style="color: red; font-weight: bold;">(<%= discountPercent %>% OFF)</span>
+                <% } else { %>
+                    ₹<%= salePrice.toLocaleString('en-IN') %>
+                <% } %>
+            </a>
+        </div>
+    <% } %>
+
+  </main><br><br><br><br><br>
+    
+    <!-- Instagram Section Begin -->
+    
+    
+        <div class="container" style="background-color: pink;border-radius: 18px;">
+            
+            <h2 style="text-align: center;">Follow us on instagram!</h2>
+            <br><br>
+            <h5>Visit our instagram page for beautiful outfit for our cute little ones.There is lots of collections like frock,western wear,muslin cloths..</h5>
+                <h1 style="text-align: center;">#minnie_plum</h1>
+               
+        </div>
+    </section><br><br><br><br><br>
+    <!-- Instagram Section End -->
+
+    
+     
+    <!-- Footer Section Begin -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="footer__about">
+                        <div class="footer__logo">
+                            <a href="#"><img src="img/logob.png" alt=""></a>
+                        </div>
+                        <p>The customer is at the heart of our unique business model, which includes design.</p>
+                        <a href="#"><img src="img/payment.png" alt=""></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 offset-lg-1 col-md-3 col-sm-6">
+                    <div class="footer__widget">
+                        <h6>Shopping</h6>
+                        <ul>
+                            <li><a href="#">Clothing Store</a></li>
+                            <li><a href="#">Trending Shoes</a></li>
+                            <li><a href="#">Accessories</a></li>
+                            <li><a href="#">Sale</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <div class="footer__widget">
+                        <h6>Shopping</h6>
+                        <ul>
+                            <li><a href="#">Contact Us</a></li>
+                            <li><a href="#">Payment Methods</a></li>
+                            <li><a href="#">Delivary</a></li>
+                            <li><a href="#">Return & Exchanges</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 offset-lg-1 col-md-6 col-sm-6">
+                    <div class="footer__widget">
+                        <h6>NewLetter</h6>
+                        <div class="footer__newslatter">
+                            <p>Be the first to know about new arrivals, look books, sales & promos!</p>
+                            <form action="#">
+                                <input type="text" placeholder="Your email">
+                                <button type="submit"><span class="icon_mail_alt"></span></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="footer__copyright__text">
+                        
+                        <p>Copyright ©
+                            <script>
+                                document.write(new Date().getFullYear());
+                            </script>2020
+                            All rights reserved 
+                        </p>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Footer Section End -->
+    
+    <!-- Search Begin -->
+    <div class="search-model">
+        <div class="h-100 d-flex align-items-center justify-content-center">
+            <div class="search-close-switch">+</div>
+            <form class="search-model-form">
+                <input type="text" id="search-input" placeholder="Search here.....">
+            </form>
+        </div>
+    </div>
+    <!-- Search End -->
+
+
+     
+    
+    <%-include("../../views/partials/user/footer")%>

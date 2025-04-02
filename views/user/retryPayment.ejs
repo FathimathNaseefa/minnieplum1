@@ -1,0 +1,204 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        } 
+
+        .payment-container {
+            margin:220px;
+            margin-left: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .order-info {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .pay-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .pay-btn:hover {
+            background: #218838;
+        }
+
+        .loading-spinner {
+            display: none;
+            margin-top: 15px;
+        }
+         .breadcrumb {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            list-style: none;
+            padding: 10px 20px;
+            margin: 0;
+            background-color: #f8f9fa; 
+            border-radius: 5px; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-item {
+            color: #6c757d; 
+            margin-right: 10px; 
+            font-weight: 500; 
+        }
+
+        .breadcrumb-item a {
+            text-decoration: none;
+            color: #007bff; 
+            transition: color 0.2s ease-in-out;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #0056b3; 
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: '>'; 
+            margin-right: 10px;
+            color: #6c757d; 
+        }
+
+        .breadcrumb-item.active {
+            color: #495057; 
+            font-weight: bold;
+            pointer-events: none; 
+        } 
+
+    </style> 
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
+
+ </head>
+<body> 
+     <section class="breadcrumb-section">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/userProfile">Profile</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Retry Payment</li>
+            </ol>
+        </nav>
+    </section> 
+    
+    <div class="payment-container">
+        <h2>Retry Payment</h2>
+        <p class="order-info">Order ID: <strong><%= orderId %></strong></p>
+        <p class="order-info">Amount: <strong>₹<%= (amount / 100).toFixed(2) %></strong></p>
+
+        <form id="razorpay-form">
+            <input type="hidden" id="orderId" value="<%= orderId %>">
+            <input type="hidden" id="razorpayOrderId" value="<%= razorpayOrderId %>">
+            <button type="button" id="pay-btn" class="pay-btn">Pay Now</button>
+        </form>
+
+        <div class="loading-spinner">
+            <i class="fa fa-spinner fa-spin" style="font-size: 24px; color: #28a745;"></i>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.getElementById('pay-btn').onclick = function () {
+            Swal.fire({
+                title: "Retry Payment?",
+                text: "Are you sure you want to retry the payment?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, retry",
+                cancelButtonText: "Cancel",
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+    
+                document.querySelector('.loading-spinner').style.display = 'block';
+    
+                var options = {
+                    "key": "<%= razorpayKey %>",
+                    "amount": <%= amount %>,
+                    "currency": "INR",
+                    "order_id": "<%= razorpayOrderId %>",
+                    "name": "Your Store",
+                    "description": "Order Payment",
+                    "handler": function (response) {
+                        console.log("Payment Successful!", response);
+    
+                        const orderId = "<%= orderId %>";
+                        console.log("Retrying payment for Order ID:", orderId);
+    
+                        fetch(`/payment-success?orderId=${orderId}&paymentId=${response.razorpay_payment_id}`)
+                            .then((res) => res.json())
+                            .then((data) => {
+                                if (data.success) {
+                                    console.log("✅ Payment updated successfully. Redirecting...");
+                                    Swal.fire({
+                                        title: "Payment Successful!",
+                                        text: "Your payment has been processed successfully.",
+                                        icon: "success",
+                                        confirmButtonText: "OK"
+                                    }).then(() => {
+                                        window.location.href = `/order-success/${orderId}`;
+                                    });
+                                } else {
+                                    Swal.fire("Error!", "Payment update failed! Please contact support.", "error");
+                                }
+                            })
+                            .catch((error) => {
+                                console.error("Error updating payment:", error);
+                                Swal.fire("Error!", "An error occurred. Please try again.", "error");
+                            });
+                    },
+                    "prefill": {
+                        "name": "Customer",
+                        "email": "customer@example.com",
+                        "contact": "9999999999"
+                    },
+                    "theme": {
+                        "color": "#28a745"
+                    },
+                    "modal": {
+                        "ondismiss": function () {
+                            document.querySelector('.loading-spinner').style.display = 'none';
+                            Swal.fire("Payment Cancelled", "You cancelled the payment.", "info");
+                        }
+                    }
+                };
+    
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+            });
+        };
+    </script>
+    
+</body>
+<!-- <%- include("../../views/partials/user/footer") %> -->

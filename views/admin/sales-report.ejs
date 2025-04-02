@@ -1,0 +1,217 @@
+<%- include("../../views/partials/admin/header") %>  
+<style>
+    
+    h2 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    /* Form Styles */
+    #salesReportForm {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #salesReportForm label {
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    #salesReportForm input[type="date"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    #salesReportForm button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    #salesReportForm button:hover {
+        background-color: #0056b3;
+    }
+    
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    table th, table td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+    
+    table th {
+        background-color: #007bff;
+        color: #fff;
+    }
+    
+    table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+    
+    /* Button Styles */
+    button {
+        padding: 10px 20px;
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+    }
+    
+    button:hover {
+        background-color: #218838;
+    }
+    
+    button:last-child {
+        background-color: #dc3545;
+    }
+    
+    button:last-child:hover {
+        background-color: #c82333;
+    }</style>
+
+
+
+ <h2>Sales Report</h2>
+
+<form id="salesReportForm">
+    <label>Select Date Range:</label>
+    <input type="date" id="startDate" required>
+    <input type="date" id="endDate" required>
+
+    <label>Report Type:</label>
+    <select id="reportPeriod">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="yearly">Yearly</option>
+        <option value="custom">Custom Date</option> <!-- ✅ New Option -->
+    </select>
+
+    <button type="submit">Generate Report</button>
+</form>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Period</th>
+            <th>Total Orders</th>
+            <th>Total Sales</th>
+            <th>Total Discount</th>
+        </tr>
+    </thead>
+    <tbody id="salesReportTable"></tbody>
+</table>
+
+<button onclick="downloadPDF()">Download PDF</button>
+<button onclick="downloadExcel()">Download Excel</button>
+
+<script>
+    document.getElementById("salesReportForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const startDateInput = document.getElementById("startDate");
+        const endDateInput = document.getElementById("endDate");
+        const period = document.getElementById("reportPeriod").value;
+
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        const today = new Date();
+
+        // ✅ Ensure dates are selected
+        if (!startDateInput.value || (!endDateInput.value && period !== "custom")) {
+            alert("Please select valid dates.");
+            return;
+        }
+
+        // ✅ Prevent future dates
+        if (startDate > today || endDate > today) {
+            alert("Future dates are not allowed.");
+            return;
+        }
+
+        // ✅ Handle Custom Date Validation
+        if (period === "custom") {
+            endDateInput.value = startDateInput.value; // Set end date to same as start date
+        } else {
+            // ✅ Ensure end date is not earlier than start date
+            if (endDate < startDate) {
+                alert("End date cannot be earlier than start date.");
+                return;
+            }
+        }
+
+        // Fetch the sales report data
+        const response = await fetch("/admin/sales-report-data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ startDate: startDateInput.value, endDate: endDateInput.value, period }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            const tableBody = document.getElementById("salesReportTable");
+            tableBody.innerHTML = ""; // Clear previous results
+
+            Object.entries(data.data).forEach(([periodKey, values]) => {
+                const row = `<tr>
+                    <td>${periodKey}</td>
+                    <td>${values.totalOrders}</td>
+                    <td>₹${values.totalSales.toFixed(2)}</td>
+                    <td>₹${values.totalDiscount.toFixed(2)}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+    });
+
+    function downloadPDF() {
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+        if (!startDate || !endDate || new Date(endDate) < new Date(startDate)) {
+            alert("Please select a valid date range.");
+            return;
+        }
+        window.location.href = `/admin/download-report/pdf?startDate=${startDate}&endDate=${endDate}`;
+    }
+
+    function downloadExcel() {
+        window.location.href = "/admin/download-report/excel";
+    }
+
+    // ✅ Hide/Show End Date Based on Selection
+    document.getElementById("reportPeriod").addEventListener("change", function () {
+        const endDateInput = document.getElementById("endDate");
+        if (this.value === "custom") {
+            endDateInput.style.display = "none"; // Hide for custom date
+        } else {
+            endDateInput.style.display = "inline-block"; // Show for other reports
+        }
+    });
+</script>

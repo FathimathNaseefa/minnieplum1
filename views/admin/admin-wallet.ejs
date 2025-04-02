@@ -1,0 +1,66 @@
+<%- include("../../views/partials/admin/header") %>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .table th{
+            background-color: rgb(52, 52, 226);
+        }
+    </style>
+</head>
+<body >
+
+    <h2 class="text-center">Wallet Transactions</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>User</th>
+                <th>Transaction Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% transactions.forEach(transaction => { %>
+                <tr>
+                    <td><%= transaction._id %></td>
+                    <td><%= transaction.user ? transaction.user.name : 'Unknown' %></td>
+                    <td>
+                        <span class="<%= transaction.transactionType === 'credit' ? 'text-success' : 'text-danger' %>">
+                            <%= transaction.transactionType.charAt(0).toUpperCase() + transaction.transactionType.slice(1) %>
+                        </span>
+                    </td>
+                    <td>₹<%= transaction.amount %></td>
+                    <td><%= new Date(transaction.date).toLocaleDateString() %></td> 
+                    <td>
+                        <a href="/admin/wallet/transaction/<%= transaction._id %>" class="btn btn-primary btn-sm">View</a>
+                    </td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <% if (currentPageNum > 1) { %>
+                <li class="page-item">
+                    <a class="page-link" href="/admin/wallet?page=<%= currentPageNum - 1 %>">Previous</a>
+                </li>
+            <% } %>
+    
+            <li class="page-item active">
+                <span class="page-link"><%= currentPageNum %></span>
+            </li>
+    
+            <% if (currentPageNum < totalPages) { %>
+                <li class="page-item">
+                    <a class="page-link" href="/admin/wallet?page=<%= currentPageNum + 1 %>">Next</a>
+                </li>
+            <% } %>
+        </ul>
+    </nav>
+      
+</body>
+</html>
+<%- include("../../views/partials/admin/footer") %>

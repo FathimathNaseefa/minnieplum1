@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Offer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            background: white;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        function toggleFields() {
+            const type = document.getElementById("offerType").value;
+            document.getElementById("productField").style.display = (type === "product") ? "block" : "none";
+            document.getElementById("categoryField").style.display = (type === "category") ? "block" : "none";
+            document.getElementById("referralField").style.display = (type === "referral") ? "block" : "none";
+        }
+    </script>
+</head>
+<body>
+    <h1>Add Offer</h1>
+    
+    <form action="/admin/add-offer" method="POST">
+        <label>Offer Type:</label>
+        <select name="type" id="offerType" onchange="toggleFields()" required>
+            <option value="product">Product Offer</option>
+            <option value="category">Category Offer</option>
+            <option value="referral">Referral Offer</option>
+        </select>
+
+        <div id="productField">
+            <label>Product:</label>
+            <select name="productId">
+                <% products.forEach(product => { %>
+                    <option value="<%= product._id %>"><%= product.productName %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div id="categoryField" style="display:none;">
+            <label>Category:</label>
+            <select name="categoryId">
+                <% categories.forEach(category => { %>
+                    <option value="<%= category._id %>"><%= category.name %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div id="referralField" style="display:none;">
+            <label>Referral Code:</label>
+            <input type="text" name="referralCode">
+        </div>
+
+        <label>Discount (%):</label>
+        <input type="number" name="discount" required min="1" max="100">
+
+        <label>Expiry Date:</label>
+        <input type="date" name="expiry" required>
+
+        <button type="submit">Add Offer</button>
+    </form>
+
+    <a href="/admin/offers" class="back-link">Back to Offers</a>
+
+    <script>toggleFields();</script>
+</body>
+</html>

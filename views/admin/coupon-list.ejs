@@ -1,0 +1,133 @@
+<%- include("../../views/partials/admin/header") %>
+<style>
+
+ body {
+    
+    text-align: center;
+} 
+h1 {
+    color: #333;
+}
+
+table {
+    width: 80%;
+    margin: auto;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+td {
+    color: #555;
+}
+
+td a {
+    background-color: #dc3545;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+td a:hover {
+    background-color: #c82333;
+}
+#acoupon{
+    display: inline-block;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    text-decoration: none;
+    background-color: #28a745;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+}
+</style>
+<body>
+    <h1>Coupon Management</h1>
+
+    <a href="/admin/add-coupon" id="acoupon">Add New Coupon</a>
+
+    <table border="1">
+        
+        <tr>
+            <th>Code</th>
+            <th>Discount</th> 
+            <th>Expiry</th>
+            <th>Actions</th>
+        </tr>
+        <% coupons.forEach(coupon => { %>
+            <tr>
+                <td><%= coupon.code %></td>
+                <td>
+                    <% if (coupon.discountType === 'percentage') { %>
+                        <%= coupon.discount %>%
+                    <% } else { %>
+                        ₹<%= coupon.discount %>
+                    <% } %>
+                </td>
+                <td><%= new Date(coupon.expiry).toDateString() %></td>
+                <td>
+                    <button 
+                        style="color: white; font-weight: bold; background-color: red; border: none; padding: 5px 10px; cursor: pointer;"
+                        onclick="confirmDelete('<%= coupon._id %>')"
+                    >
+                        Delete
+                    </button>
+                </td>
+                
+                
+            </tr>
+        <% }); %>
+        
+    </table>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDelete(couponId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/delete-coupon/${couponId}`, { method: "DELETE" })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: data.message,
+                                icon: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload(); // Refresh page after deletion
+                            });
+                        } else {
+                            Swal.fire("Error!", data.message, "error");
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire("Error!", "Something went wrong!", "error");
+                    });
+            }
+        });
+    }
+</script>
+
+
+    <%- include("../../views/partials/admin/footer") %>

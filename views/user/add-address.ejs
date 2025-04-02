@@ -1,0 +1,192 @@
+<%- include("../../views/partials/user/header") %>
+    <style>
+        
+        .contain {
+           background: #fff;
+           padding: 25px;
+           border-radius: 12px;
+           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+           width: 430px;
+           text-align: center;
+           margin-top: 200px;
+           background-color: #e4a2b0;
+
+        /* Centering */
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+
+        h2 {
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input[type="text"], input[type="checkbox"] {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+            text-align: left;
+            display: block;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contain">
+        <h2 style="background-color:#b8074b ;">Add Address</h2>
+
+        <form id="address-form" action="/addAddress" method="POST" onsubmit="return validateForm(event)">
+            <label>Full Name:</label>
+            <input type="text" id="name" name="name" required />
+            <span class="error" id="name-error"></span>
+
+            <label>Address Line 1:</label>
+            <input type="text" id="addressLine1" name="addressLine1" required />
+            <span class="error" id="addressLine1-error"></span>
+
+            <label>City:</label>
+            <input type="text" id="city" name="city" required />
+            <span class="error" id="city-error"></span>
+
+            <label>State:</label>
+            <input type="text" id="state" name="state" required />
+            <span class="error" id="state-error"></span>
+
+            <label>Postal Code:</label>
+            <input type="text" id="postalCode" name="postalCode" required />
+            <span class="error" id="postalCode-error"></span>
+
+            <label>Country:</label>
+            <input type="text" id="country" name="country" required />
+            <span class="error" id="country-error"></span>
+
+            <label>Phone Number:</label>
+            <input type="text" id="phoneNumber" name="phoneNumber" required />
+            <span class="error" id="phoneNumber-error"></span>
+
+            <label>
+                <input type="checkbox" name="isDefault" /> Set as Default Address
+            </label>
+
+            <button type="submit" id="submitButton">Add Address</button>
+        </form>
+    </div>
+
+    <script>
+        function validateForm(event) {
+            event.preventDefault(); // Prevent form submission until validation is complete
+
+            // Get input values
+            const name = document.getElementById("name").value.trim();
+            const addressLine1 = document.getElementById("addressLine1").value.trim();
+            const city = document.getElementById("city").value.trim();
+            const state = document.getElementById("state").value.trim();
+            const postalCode = document.getElementById("postalCode").value.trim();
+            const country = document.getElementById("country").value.trim();
+            const phoneNumber = document.getElementById("phoneNumber").value.trim();
+
+            // Get error message elements
+            const nameError = document.getElementById("name-error");
+            const addressLine1Error = document.getElementById("addressLine1-error");
+            const cityError = document.getElementById("city-error");
+            const stateError = document.getElementById("state-error");
+            const postalCodeError = document.getElementById("postalCode-error");
+            const countryError = document.getElementById("country-error");
+            const phoneNumberError = document.getElementById("phoneNumber-error");
+
+            // Reset previous error messages
+            nameError.innerHTML = "";
+            addressLine1Error.innerHTML = "";
+            cityError.innerHTML = "";
+            stateError.innerHTML = "";
+            postalCodeError.innerHTML = "";
+            countryError.innerHTML = "";
+            phoneNumberError.innerHTML = "";
+
+            let valid = true;
+
+            // Validation Checks
+            const namePattern = /^[A-Za-z\s]+$/;
+
+            if (name === "" || !namePattern.test(name)) {
+                nameError.innerHTML = "Invalid Name! Only alphabets and spaces allowed.";
+                valid = false;
+            }
+
+            if (addressLine1 === "") {
+                addressLine1Error.innerHTML = "Address Line 1 is required!";
+                valid = false;
+            }
+
+            if (city === "" || !namePattern.test(city)) {
+                cityError.innerHTML = "Invalid City! Only alphabets and spaces allowed.";
+                valid = false;
+            }
+
+            if (state === "" || !namePattern.test(state)) {
+                stateError.innerHTML = "Invalid State! Only alphabets and spaces allowed.";
+                valid = false;
+            }
+
+            if (!/^\d{6}$/.test(postalCode)) {
+                postalCodeError.innerHTML = "Invalid Postal Code! Must be 6 digits.";
+                valid = false;
+            }
+
+            if (country === "") {
+                countryError.innerHTML = "Country is required!";
+                valid = false;
+            }
+
+            if (!/^\d{10}$/.test(phoneNumber)) {
+                phoneNumberError.innerHTML = "Invalid Phone Number! Must be 10 digits.";
+                valid = false;
+            }
+
+            if (valid) {
+                document.getElementById("address-form").submit(); // Submit form if validation passes
+            }
+        }
+    </script>
+
+</body>
+</html>
+<%- include("../../views/partials/user/footer") %>

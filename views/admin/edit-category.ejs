@@ -1,0 +1,111 @@
+<%- include("../../views/partials/admin/header") %>
+
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-60">
+            <!-- Error message container -->
+            <div id="form-error" class="alert alert-danger" style="display: none;"></div>
+            
+            <form id="editCategoryForm" method="post" onsubmit="return validateForm(event)">
+                <input type="hidden" name="_id" value="<%=category._id%>">
+                <div class="d-grid text-end mt-30 col-md-5">
+                    <button class="btn btn-primary" type="submit">Update category</button>
+                </div>
+                <div class="mb-4 mt-30">
+                    <label for="product_name" class="form-label">Name</label>
+                    <input type="text" name="categoryName" value="<%=category.name%>" class="form-control border" />
+                    <div id="name-error" class="text-danger mt-1" style="display: none;"></div>
+                </div> 
+                
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control border"><%=category.description%></textarea>
+                    <div id="description-error" class="text-danger mt-1" style="display: none;"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function validateForm(event) {
+        event.preventDefault();
+        
+        // Clear previous errors
+        document.getElementById("form-error").style.display = "none";
+        document.getElementById("name-error").style.display = "none";
+        document.getElementById("description-error").style.display = "none";
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const id = formData.get('_id');
+        let isValid = true;
+
+        // Client-side validation
+        const categoryName = formData.get('categoryName').trim();
+        const description = formData.get('description').trim();
+
+        if (!categoryName) {
+            showError("name-error", "Please enter a category name");
+            isValid = false;
+        }
+
+        if (!description) {
+            showError("description-error", "Please enter a description");
+            isValid = false;
+        }
+
+        if (!isValid) return;
+
+        try {
+            const response = await fetch(`/admin/editCategory/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    categoryName: categoryName,
+                    description: description
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                handleServerErrors(errorData);
+                return;
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = '/admin/category'; // Redirect on success
+            } else {
+                handleServerErrors(result);
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            showError("form-error", "Network error. Please check your connection and try again.");
+        }
+    }
+
+    function showError(elementId, message) {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+        element.style.display = "block";
+    }
+
+    function handleServerErrors(errorData) {
+        if (errorData.error) {
+            showError("form-error", errorData.error);
+        }
+        if (errorData.nameError) {
+            showError("name-error", errorData.nameError);
+        }
+        if (errorData.descriptionError) {
+            showError("description-error", errorData.descriptionError);
+        }
+    }
+</script>
+<%- include("../../views/partials/admin/footer") %>

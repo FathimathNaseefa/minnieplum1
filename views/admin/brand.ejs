@@ -1,0 +1,182 @@
+<%- include("../../views/partials/admin/header") %>
+<style>
+ .pagination {
+    display: flex;
+    gap: 5px;
+    list-style: none;
+    padding: 0;
+}
+
+.pagination .page-item {
+    display: inline-block;
+}
+
+.pagination .page-item .page-link {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #007bff;
+    background: white;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: #ddd;
+}
+
+</style>
+<section class="content-main">
+  <div class="content-header">
+    <% if (messages.error.length > 0) { %>
+      <div class="alert alert-danger"><%= messages.error[0] %></div>
+    <% } %>
+    <% if (messages.success.length > 0) { %>
+      <div class="alert alert-success"><%= messages.success[0] %></div>
+    <% } %>
+    
+    
+    <div>
+      <h2 class="content-title card-title">Brands</h2>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <form method="post" action="/admin/addBrand" enctype="">
+            <div class="mb-4">
+              <label for="product_name" class="form-label">Brand Name</label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Type here"
+                class="form-control"
+              />
+            </div>
+            
+            <div class="d-grid">
+              <button class="btn btn-primary mt-20" type="submit">
+                Add Brand
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="col-md-7 ml-105">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Brand</th>
+                  
+                  <th>Status</th>
+                  <th>Block/Unblock/Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%data.reverse().forEach((brand,index)=>{%>
+                <tr>
+                  <td class="text-start"><%=brand.brandName%></td>
+                  
+                  <td class="text-start">
+                    <%if(brand.isBlocked===true){%>
+                    <span
+                      class="badge rounded-pill alert-danger"
+                      style="width: 60px"
+                      >Blocked</span
+                    >
+                    <%}else{%>
+                    <span
+                      class="badge rounded-pill alert-success"
+                      style="width: 60px"
+                      >Active</span
+                    >
+                    <%}%>
+                  </td>
+                  <td class="text-start">
+                    <%if(brand.isBlocked===false){%>
+                    <button class="btn btn-danger" style="width: 90px">
+                      <a href="/admin/blockBrand?id=<%=brand._id%>" class="text-white">Block</a>
+                    </button>
+                   <%}else{%>
+                    <button class="btn btn-success" style="width: 90px">
+                      <a href="/admin/unBlockBrand?id=<%=brand._id%>" class="text-white">Unblock</a>
+                    </button>
+                    <%}%>
+                  
+                    <button class="btn btn-danger" style="width: 90px" 
+                    onclick="confirmDelete(event, '/admin/deleteBrand?id=<%=brand._id%>')">
+                    <span class="text-white">Delete</span>
+                    </button>
+
+                  </td>
+                </tr>
+                <%})%>
+              </tbody>
+            </table>
+            
+            <div class="pagination-container d-flex justify-content-center mt-4">
+              <nav>
+                  <ul class="pagination">
+                      <!-- Previous Button -->
+                      <% if (currentPag > 1) { %>
+                          <li class="page-item">
+                              <a class="page-link" href="/admin/brand?page=<%= currentPag - 1 %>">Previous</a>
+                          </li>
+                      <% } %>
+          
+                      <!-- Current Page -->
+                      <li class="page-item active">
+                          <span class="page-link"><%= currentPag %></span>
+                      </li>
+          
+                      <!-- Next Button -->
+                      <% if (currentPag < totalPages) { %>
+                          <li class="page-item">
+                              <a class="page-link" href="/admin/brand?page=<%= currentPag + 1 %>">Next</a>
+                          </li>
+                      <% } %>
+                  </ul>
+              </nav>
+          </div>
+          
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pagination-container">
+</div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  function confirmDelete(event, url) {
+    event.preventDefault(); // Prevent the default link action
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = url; // Proceed with deletion
+      }
+    });
+  }
+</script>
+
+<%- include("../../views/partials/admin/footer") %>
+

@@ -1,0 +1,123 @@
+<%- include("../../views/partials/user/header") %>
+<style>
+    /* Styles for the entire container */
+    .center-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Full viewport height */
+    background-color: #f8f8f8; /* Light background */
+}
+
+.form-container {
+    background: #e7a1a1; /* Light pink background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    text-align: center;
+   
+}
+
+.form-container h3 {
+    font-size: 20px;
+    color: black;
+    margin-bottom: 15px;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0d6efd; /* Blue button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.form-container button:hover {
+    background-color: #0056b3;
+}
+
+
+</style>
+<div class="center-box">
+  <div class="form-container">
+    <h3>Change Name</h3>
+    
+    <form id="change-name-form" action="/change-name" method="POST">
+        <div class="form-group">
+          <label for="name">New Name</label>
+          <input type="text" id="name" name="name" class="form-control" value="<%= user.name %>" required>
+          <!-- Placeholder for displaying error messages -->
+          <div id="name-error" style="color: red; display: none; margin-top: 5px;"></div>
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+      </form>
+     </div> 
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const form = document.getElementById("change-name-form");
+      const nameInput = document.getElementById("name");
+      const nameError = document.getElementById("name-error");
+  
+      form.addEventListener("submit", async function(event) {
+        event.preventDefault(); // Prevent the default form submission
+  
+        const name = nameInput.value.trim();
+  
+        // Clear previous error messages
+        nameError.style.display = 'none';
+        nameError.textContent = '';
+  
+        // Validate the name input
+        if (name === '') {
+          nameError.style.display = 'block';
+          nameError.textContent = 'Name cannot be empty.';
+          return;
+        }
+  
+        // Only alphabets and minimum 3 characters
+        const namePattern =  /^[A-Za-z\s]{3,}$/;
+        if (!namePattern.test(name)) {
+          nameError.style.display = 'block';
+          nameError.textContent = 'Please enter a valid name with at least 3 letters, no symbols, and no spaces.';
+          return;
+        }
+  
+        // If validation passes, send the request to the server
+        const response = await fetch('/change-name', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name })
+        });
+  
+        const data = await response.json();
+  
+        // If there are errors, display them below the input box
+        if (data.errors && data.errors.length > 0) {
+          nameError.style.display = 'block';
+          nameError.textContent = data.errors[0]; // Display the first error message
+        } else if (data.success) {
+          // Redirect or show a success message
+          window.location.href = '/userProfile'; // Redirect to profile page after successful update
+        }
+      });
+    });
+  </script>
+  
+  
+  <%- include("../../views/partials/user/footer") %>
+  

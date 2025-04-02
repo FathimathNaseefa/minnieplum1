@@ -1,0 +1,97 @@
+<%- include("../../views/partials/user/header") %>
+
+<section class="content-main mt-80 mb-80" style="margin-top: 130px;">
+    <div class="card mx-auto card-login col-4" style="background-color:#e4a2b0 ;">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Enter New Email</h4>
+
+            <% if (message) { %>
+                <div class="alert alert-danger">
+                    <%= message %>
+                </div>
+            <% } %>
+
+            <form method="post" id="updateEmailForm" action="/update-email" onsubmit="return validateEmailForm()">
+                <div class="mb-3">
+                    <input class="form-control" name="newEmail" placeholder="New Email" type="text" id="email">
+                    <div class="error-message" id="email-error"></div>
+                </div>
+                <div class="mb-4">
+                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Include SweetAlert Library -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function validateEmailForm() {
+        const emailInput = document.getElementById('email');
+        const emailError = document.getElementById('email-error');
+        const emailValue = emailInput.value.trim();
+        const currentEmail = "<%= currentEmail %>";
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+        if (emailValue === '') {
+            emailError.textContent = 'Please enter your new email.';
+            emailInput.classList.add('is-invalid');
+            return false;
+        } else if (!emailValue.match(emailPattern)) {
+            emailError.textContent = 'Please enter a valid email address.';
+            emailInput.classList.add('is-invalid');
+            return false;
+        } else if (emailValue === currentEmail) {
+            emailError.textContent = 'This is already your current email.';
+            emailInput.classList.add('is-invalid');
+            return false;
+        } else {
+            emailError.textContent = '';
+            emailInput.classList.remove('is-invalid');
+            return true;
+        }
+    }
+
+
+$(document).ready(function () {
+    $("#updateEmailForm").submit(function (event) {
+        event.preventDefault(); // Prevent form submission
+
+        const newEmail = $("#email").val(); // Get email input
+
+        $.ajax({
+            type: "POST",
+            url: "/update-email",
+            data: { newEmail: newEmail },
+            success: function (response) {
+                if (response.success) {
+                    // ✅ Show SweetAlert only for success
+                    Swal.fire({
+                        icon: "success",
+                        title: "Email Updated Successfully!",
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.href = response.redirectUrl;
+                    });
+                } else {
+                    // ❌ Show error message directly on the page
+                    $("#email-error").text(response.message).addClass("text-danger");
+                    $("#email").addClass("is-invalid");
+                }
+            },
+            error: function () {
+                // ❌ Show general error message on the page
+                $("#email-error").text("Failed to update email. Please try again.").addClass("text-danger");
+                $("#email").addClass("is-invalid");
+            }
+        });
+    });
+});
+
+</script>
+
+<%- include("../../views/partials/user/footer") %> 

@@ -1,0 +1,123 @@
+<%- include("../../views/partials/user/header") %>
+<style>
+  .center-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Full viewport height */
+    background-color: #f8f8f8; /* Light background */
+}
+
+.form-container {
+    background: #e7a1a1; /* Light pink background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    text-align: center;
+}
+
+.form-container h3 {
+    font-size: 20px;
+    color: black;
+    margin-bottom: 15px;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0d6efd; /* Blue button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.form-container button:hover {
+    background-color: #0056b3;
+}
+
+
+</style>
+<!-- <div class="col-md-8"> -->
+  <div class="center-box">
+    <div class="form-container">
+    <h3>Change Phone Number</h3>
+    <form id="change-phone-form" action="/change-phone" method="POST">
+      <div class="form-group">
+        <label for="phone">New Phone</label>
+        <input type="text" id="phone" name="phone" class="form-control" value="<%= user.phone %>" required>
+      </div>
+      <div id="phone-error" style="color: red; display: none; margin-top: 5px;"></div>
+        <!-- </div> -->
+        <button type="submit" class="btn btn-success">Save</button>
+      </form>
+  </div>
+</div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("change-phone-form");
+    const phoneInput = document.getElementById("phone");
+    const phoneError = document.getElementById("phone-error");
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const phone = phoneInput.value.trim();
+
+        // Clear previous error messages
+        phoneError.style.display = 'none';
+        phoneError.textContent = '';
+
+        // Validate the phone number input
+        if (phone === '') {
+            phoneError.style.display = 'block';
+            phoneError.textContent = 'Phone number cannot be empty.';
+            return;
+        }
+
+        // Validate phone number (only digits and exactly 10 characters long)
+        const phonePattern = /^[0-9]{10}$/;
+        if (!phonePattern.test(phone)) {
+            phoneError.style.display = 'block';
+            phoneError.textContent = 'Please enter a valid 10-digit phone number.';
+            return;
+        }
+
+        // If validation passes, send the request to the server
+        const response = await fetch('/change-phone', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ phone })
+        });
+
+        const data = await response.json();
+
+        // If there are errors, display them below the input box
+        if (data.errors && data.errors.length > 0) {
+            phoneError.style.display = 'block';
+            phoneError.textContent = data.errors[0]; // Display the first error message
+        } else if (data.success) {
+            // Redirect or show a success message
+            window.location.href = '/userProfile'; // Redirect to profile page after successful update
+        }
+    });
+});
+</script>
+<%- include("../../views/partials/user/footer") %>
+
+ 
+
+
+

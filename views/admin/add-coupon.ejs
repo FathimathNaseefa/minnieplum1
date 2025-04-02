@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Coupon</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        form {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+         #abtn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        
+        .error {
+            color: red;
+            font-size: 14px;
+            text-align: left;
+        }
+
+    </style>
+</head>
+<body>
+    
+
+<h1>Add Coupon</h1>
+
+<form id="couponForm" action="/admin/add-coupon" method="POST" onsubmit="return validateCoupon(event)">
+    <label>Coupon Code:</label>
+    <input type="text" name="code" id="code" required>
+    <span class="error" id="codeError"></span>
+
+    <label>Discount Type:</label>
+    <select name="discountType" id="discountType" required>
+        <option value="percentage">Percentage (%)</option>
+        <option value="flat">Flat Amount (₹)</option>
+    </select>
+
+    <label>Discount Value:</label>
+    <input type="number" name="discount" id="discount" required min="1">
+    <span class="error" id="discountError"></span>
+
+    <label>Expiry Date:</label>
+    <input type="date" name="expiry" id="expiry" required>
+    <span class="error" id="expiryError"></span>
+
+    <label>Usage Limit:</label>
+    <input type="number" name="usageLimit" id="usageLimit" required min="1">
+    <span class="error" id="usageLimitError"></span>
+
+    <label>Minimum Order Value (Optional):</label>
+    <input type="number" name="minOrderValue" id="minOrderValue" min="1">
+    <span class="error" id="minOrderValueError"></span>
+
+    <label>Applicable to Categories:</label>
+    <select name="categoryIds[]" id="categoryIds" multiple>
+        <% categories.forEach(category => { %>
+            <option value="<%= category._id %>"><%= category.name %></option>
+        <% }); %>
+    </select>
+    
+    <label>Applicable to Products (Optional):</label>
+    <select name="productIds[]" id="productIds" multiple>
+        <% products.forEach(product => { %>
+            <option value="<%= product._id %>"><%= product.productName %></option>
+        <% }); %>
+    </select>
+    
+    <label>User Restriction (Optional):</label>
+    <select name="userRestriction" id="userRestriction">
+        <option value="">No Restriction</option>
+        <option value="newUser">New User Only</option>
+        <option value="existingUser">Existing User Only</option>
+    </select>
+
+    <button type="submit">Create Coupon</button>
+</form>
+
+
+
+<script>
+    async function validateCoupon(event) {
+        event.preventDefault(); // Prevent default form submission
+    
+        // Get form values
+        const code = document.getElementById("code").value.trim();
+        const discount = parseFloat(document.getElementById("discount").value);
+        const expiry = document.getElementById("expiry").value;
+        const usageLimit = parseInt(document.getElementById("usageLimit").value);
+        const discountType = document.getElementById("discountType").value;
+        const minOrderValue = document.getElementById("minOrderValue").value ? parseFloat(document.getElementById("minOrderValue").value) : 0;
+        const categoryIds = Array.from(document.getElementById("categoryIds").selectedOptions).map(option => option.value);
+        const productIds = Array.from(document.getElementById("productIds").selectedOptions).map(option => option.value);
+        const userRestriction = document.getElementById("userRestriction").value;
+    
+        const today = new Date().toISOString().split('T')[0];
+    
+        // Reset previous error messages
+        document.getElementById("codeError").innerText = "";
+        document.getElementById("discountError").innerText = "";
+        document.getElementById("expiryError").innerText = "";
+        document.getElementById("usageLimitError").innerText = "";
+        document.getElementById("minOrderValueError").innerText = "";
+    
+        let isValid = true;
+    
+        // ✅ Validate Fields
+        // Validate coupon code
+        const codeRegex = /^[A-Z0-9]{3,}$/;
+        if (!codeRegex.test(code)) {
+            document.getElementById("codeError").innerText = "Coupon code must be at least 3 characters long and contain only uppercase letters and numbers!";
+            isValid = false;
+        }
+    
+        // Validate discount value
+        if (discount <= 0) {
+            document.getElementById("discountError").innerText = "Discount must be greater than zero!";
+            isValid = false;
+        } else if (discountType === 'percentage' && discount > 100) {
+            document.getElementById("discountError").innerText = "Discount percentage cannot be more than 100%!";
+            isValid = false;
+        } else if (discountType === 'flat' && discount > 500) {
+            document.getElementById("discountError").innerText = "Flat discount cannot exceed ₹500!";
+            isValid = false;
+        }
+    
+        // Validate expiry date
+        if (expiry < today) {
+            document.getElementById("expiryError").innerText = "Expiry date must be in the future!";
+            isValid = false;
+        }
+    
+        // Validate usage limit
+        if (usageLimit <= 0) {
+            document.getElementById("usageLimitError").innerText = "Usage limit must be greater than zero!";
+            isValid = false;
+        }
+
+        // Validate minimum order value
+        if (minOrderValue < 0) {
+            document.getElementById("minOrderValueError").innerText = "Minimum order value must be greater than or equal to zero!";
+            isValid = false;
+        }
+    
+        if (!isValid) return false; // Stop if validation fails
+    
+        // ✅ Send AJAX Request to Check for Duplicate Coupon Code
+        try {
+            const response = await fetch("/admin/add-coupon", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    code, 
+                    discount, 
+                    discountType, 
+                    expiry, 
+                    usageLimit, 
+                    minOrderValue, 
+                    categoryIds, 
+                    productIds, 
+                    userRestriction
+                })
+            });
+    
+            const result = await response.json();
+    
+            if (!result.success) {
+                document.getElementById("codeError").innerText = result.message;
+                return false;
+            }
+    
+            alert(result.message); // Show success message
+            window.location.href = "/admin/coupon";
+            return true;
+    
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("codeError").innerText = "Something went wrong! Please try again.";
+            return false;
+        }
+    }
+
+    
+    
+    // Attach validateCoupon function to form submission
+    document.getElementById("couponForm").addEventListener("submit", validateCoupon);
+
+
+
+
+
+    function getApplicableCartItems(cartItems, coupon) {
+    const applicableCategories = coupon.categoryIds.map(id => id.toString());
+    const applicableProducts = coupon.productIds.map(id => id.toString());
+
+    return cartItems.filter(item => 
+        applicableCategories.includes(item.categoryId.toString()) || 
+        applicableProducts.includes(item.productId.toString())
+    );
+}
+
+</script>
+
+<%- include("../../views/partials/admin/footer") %>
+

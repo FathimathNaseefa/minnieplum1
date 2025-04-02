@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success - minniePlum</title>
+    <link rel="stylesheet" href="/css/style.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #71966d;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 50px;
+            color: #4CAF50;
+        }
+        .order-details {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .btn-track {
+            background-color: #ff9900;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .btn-track:hover {
+            background-color: #e68a00;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="success-icon">✔</h2>
+    <h2>Thank you for your order!</h2>
+    <p>Your order has been successfully placed.</p>
+
+    <div class="order-details">
+        <p><strong>Order ID:</strong> <%= order.orderId %></p>
+        <!-- <p><strong>Total Amount:</strong> ₹<%= order.totalAmount %></p> -->
+        <p><strong>Total Amount:</strong> ₹<%= Math.round(order.totalAmount / 10) * 10 %></p>
+
+        <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+        
+      <p><strong>Shipping Address:</strong>
+        <% if (order.shippingAddress) { %>
+          <%= order.shippingAddress.name || "Guest User" %>, 
+          <%= order.shippingAddress.addressLine1 || "123 Default Street" %>,
+          <%= order.shippingAddress.addressLine2 || "Apartment 1" %>,
+          <%= order.shippingAddress.city || "Default City" %>, 
+          <%= order.shippingAddress.state || "Default State" %> - 
+          <%= order.shippingAddress.postalCode || "000000" %>, 
+          <%= order.shippingAddress.country || "Default Country" %>
+        <% } else { %>
+          No address available.
+        <% } %>
+      </p>
+      <p><strong>Phone:</strong> <%= order.shippingAddress?.phoneNumber || "N/A" %></p> 
+
+      
+        <p><strong>Estimated Delivery:</strong> <%= estimatedDelivery %></p>
+    </div>
+
+    <a href="/orders/<%= order._id %>" class="btn-track">Track Your Order</a>
+    <br>
+    <a href="/" style="margin-top: 10px; display: inline-block;">Continue Shopping</a>
+</div>
+<script>
+    // Get payment details from URL (Razorpay adds them after redirection)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentId = urlParams.get("razorpay_payment_id");
+    const orderId = urlParams.get("razorpay_order_id");
+    const signature = urlParams.get("razorpay_signature");
+
+    console.log("🔍 Razorpay Payment Data:", { paymentId, orderId, signature });
+  
+    if (paymentId && orderId && signature) {
+      // Send payment details to the backend for verification
+      fetch("/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          razorpay_payment_id: paymentId, 
+          razorpay_order_id: orderId, 
+          razorpay_signature: signature 
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Payment verified successfully!");
+          window.location.href = "/order-success"; // Redirect user
+        } else {
+          alert("Payment verification failed. Please contact support.");
+        }
+      })
+      .catch(error => console.error("Error verifying payment:", error));
+    }
+  </script>
+  
+
+</body>
+</html>

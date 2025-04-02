@@ -1,0 +1,200 @@
+<%- include("../../views/partials/admin/header") %>
+<style>
+ 
+h3 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+table th, table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+table th {
+    background-color: #007bff;
+    color: #fff;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Action Buttons */
+table td a {
+    color: #007bff;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+table td a:hover {
+    text-decoration: underline;
+}
+
+table td form {
+    display: inline;
+}
+
+table td button {
+    padding: 6px 12px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+table td button[type="submit"] {
+    background-color: #dc3545;
+}
+
+table td button:hover {
+    opacity: 0.9;
+}
+
+ #view{
+    color:#ddd; background-color: #1a4e86; padding: 10px 20px; display: inline-block; text-align: center; width: 100px;
+ }
+
+</style>
+    
+<h3>Admin Order List</h3>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>User name</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% orders.forEach(order => { %>
+            <tr>
+                <td><%= order._id %></td>
+                <td><%= order.userId.name  %></td>
+                <td>₹<%= Math.round(order.totalAmount / 10) * 10 %></td>
+
+                <td id="status-<%= order._id %>">
+                    <select onchange="updateStatus('<%= order._id %>')" id="statusSelect-<%= order._id %>">
+                        <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                        <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                        <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
+                    </select>
+                </td>
+                <td>
+                    <a id="view"  href="/admin/orderDetails?id=<%= order._id %>">View</a>
+                </td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+
+
+
+<div style="text-align: center; margin-top: 20px;">
+    <% if (currentPag > 1) { %>
+        <a style="padding: 8px 15px;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        margin-right: 10px;
+        text-decoration: none;
+        display: inline-block;" 
+        href="?page=<%= currentPag - 1 %>">
+            &laquo; Previous
+        </a>
+    <% } %>
+
+    <span style="padding: 8px 15px;
+    background-color: #0056b3;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    display: inline-block;">
+        <%= currentPag %>
+    </span>
+
+    <% if (currentPag < totalPages) { %>
+        <a style="padding: 8px 15px;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        margin-left: 10px;
+        text-decoration: none;
+        display: inline-block;" 
+        href="?page=<%= currentPag + 1 %>">
+            Next &raquo;
+        </a>
+    <% } %>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function updateStatus(orderId) {
+    const statusSelect = document.getElementById(`statusSelect-${orderId}`);
+    const newStatus = statusSelect.value;
+
+    if (!newStatus) {
+        Swal.fire({
+            icon: "warning",
+            title: "Status Missing!",
+            text: "Please select a status before updating.",
+        });
+        return;
+    }
+
+    fetch("/admin/changeOrderStatus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, status: newStatus })
+    })
+    .then(response => {
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Order Updated!",
+                text: "The order status has been updated successfully.",
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "OK",
+            });
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed!",
+                text: "Failed to update order status.",
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Something went wrong!",
+            text: "Please try again later.",
+        });
+    });
+}
+</script>
+

@@ -1,0 +1,241 @@
+<%- include("../../views/partials/admin/header") %>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+</head>
+
+
+<div class="content-header">
+    <div>
+        <h2 class="content-title card-title">Products</h2>
+    </div>
+ </div>
+<header class="card-header text-center mb-20">
+    <form action="" method="get" class="d-inline">
+        <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
+            <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search">
+            <button class="btn  border-0" type="submit">Search</button>
+        </div>
+    </form>
+</header>
+ <div class="right mt-5">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col"><b>Product name</b></th>
+                <th scope="col"><b>Category</b></th>
+                <th scope="col"><b>Sale Price</b></th>
+                <th scope="col"><b>Offer Price</b></th>
+                <th scope="col"><b>Offer</b></th>
+                <th scope="col"><b>Quantity</b></th>
+                <th scope="col"><b>Action</b></th>
+                <th scope="col"><b>Edit</b></th>
+                <th scope="col"><b>Delete</b></th>
+            </tr>
+        </thead>
+        <tbody>
+            <%for(let i=data.length-1;i>=0;i--){%>
+            
+            <tr>
+                <td><%=data[i].productName%></td>
+                <td><%=data[i].category?data[i].category.name:'No Category' %></td>
+                <td><%=data[i].salePrice%></td>
+                <td>
+                    <%if(locals.data[i].productOffer){%>
+                        <%=data[i].productOffer%>
+                        <%}else{%>
+                            0%
+                            <%}%>
+                </td>
+                <td>
+                    <%if(locals.data[i].productOffer===0){%>
+                    <button class="btn btn-info" onclick="addOffer('<%=data[i]._id%>')" style="width: 100px;">
+                        <a href="#" class="text-white">Add Offer</a>
+                    </button>
+                    <%}else{%>
+                    <button class="btn btn-info" onclick="removeOffer('<%=data[i]._id%>')" style="width: 100px;">
+                        <a href="#" class="text-white">Remove</a>
+                    </button>
+                    <%}%>
+                
+                </td>
+                <td><%=data[i].quantity%></td>
+                <td>
+                    <%if(data[i].isBlocked===false){%>
+                    <button class="btn btn-danger" style="width: 80px;">
+                         <a href="/admin/blockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;"> 
+                            Block</a>
+                    </button>
+                    <%}else{%>
+                    <button class="btn btn-success" style="width: 80px;">
+                         <a href="/admin/unblockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;"> 
+                            Unblock</a>
+                    </button>
+                    <%}%>
+            
+                </td>
+                <td>
+                    <button class="btn btn-info" style="width: 80px;">
+                        <a href="/admin/editProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Edit</a>
+                    </button>
+                </td>
+                <td>
+                    <form id="deleteForm-<%= data[i]._id%>" action="/admin/deleteProduct/<%=data[i]._id%>" method="POST" >
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="button" class="btn btn-danger" onclick="confirmDelete('<%=data[i]._id%>')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <%}%>
+        </tbody>
+    </table>
+</div>
+
+ <div class="container mt-3">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mb-20">
+
+            <!-- Previous Button -->
+            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= currentPag - 1 %>">Previous</a>
+            </li>
+
+            <!-- Current Page -->
+            <li class="page-item active">
+                <span class="page-link"><%= currentPag %></span>
+            </li>
+
+            <!-- Next Button -->
+            <li class="page-item <%= currentPag === totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= currentPag + 1 %>">Next</a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
+
+
+ 
+
+
+  
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+
+    async function addOffer(productId){
+        const{value:amount}=await Swal.fire({
+            title:'Offer in percentage',
+            input:'number',
+            inputLabel:'percentage',
+            inputPlaceholder:'%'
+        })
+        $.ajax({
+            url:"/admin/addProductOffer",
+            method:'post',
+            data:{
+                percentage:amount,
+                productId:productId
+            },
+            success:(response)=>{
+                if(response.status===true){
+                    location.reload()
+                    Swal.fire('Offer added','The offer has been removed','success')
+                }else{
+                    alert("failed")
+                }
+            }
+        })
+    }
+
+    function removeOffer(productId){
+        try{
+            Swal.fire({
+                title:'Remove offer',
+                text:'Are you sure you want to remove this offer',
+                icon:'warning',
+                showCancelButton:true,
+                confirmButtonColor:'#3085d6',
+                cancelButtonColor:'d33',
+                confirmButtonText:'Yes,remove it',
+                timer:5000,
+                timerProgressBar:true
+            }).then(async (result)=>{
+                if(result.isConfirmed){
+                    $.ajax({
+            url:"/admin/removeProductOffer",
+            method:'post',
+            data:{
+                productId:productId
+            },
+            success:(response)=>{
+                if(response.status===true){
+                    
+                    Swal.fire('Removed!','The offer has been removed','success')
+                    location.reload()
+                }else if(response.status===false){
+                    Swal.fire("failed")
+                }else{
+                    alert('failed')
+                }
+            }
+        })
+    }
+    })
+}catch(error){
+    console.error(error)
+} }
+
+        
+function confirmDelete(productId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Once deleted, you won't be able to recover this product!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById(`deleteForm-${productId}`);
+                
+                // Submit the form using AJAX
+                fetch(form.action, {
+                    method: "POST",
+                    body: new FormData(form)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted!",
+                            text: "The product has been deleted successfully.",
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.reload(); // Refresh the page after deletion
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error!",
+                            text: data.message || "An error occurred while deleting the product.",
+                        });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error!",
+                        text: "Something went wrong. Please try again.",
+                    });
+                });
+            }
+        });
+    }
+</script>
+<%- include("../../views/partials/admin/footer") %>
