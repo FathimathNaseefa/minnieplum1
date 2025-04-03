@@ -452,12 +452,7 @@ const walletPay = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
-    const {
-      addressId,
-      paymentMethod,
-      appliedCoupon,
-      discountAmount = 0,
-    } = req.body;
+    const { addressId, paymentMethod, appliedCoupon } = req.body;
 
     if (!addressId || !paymentMethod) {
       return res.status(400).json({ message: 'Address and payment method are required.' });
@@ -496,9 +491,8 @@ const createOrder = async (req, res) => {
     );
     totalBeforeDiscount = Number(totalBeforeDiscount) || 0;
 
-    // Calculate product and category offers
-    let productOfferDiscount = 0;
-    let categoryOfferDiscount = 0;
+    // Discount calculation variables
+    let totalDiscount = 0;
 
     for (const item of cart) {
       const product = await Product.findById(item.productId._id);
@@ -527,20 +521,18 @@ const createOrder = async (req, res) => {
         }
       }
 
-      // Apply the higher of the two discounts (product or category)
-      const higherDiscount = Math.max(productDiscount, categoryDiscount);
-      
-      productOfferDiscount += productDiscount * item.quantity;
-      categoryOfferDiscount += categoryDiscount * item.quantity;
+      // Apply ONLY the highest discount (either product offer OR category offer)
+      let highestDiscount = Math.max(productDiscount, categoryDiscount);
+      totalDiscount += highestDiscount * item.quantity;
     }
 
-    // Calculate subtotal after product/category offers
-    const subtotalAfterOffers = Math.max(0, totalBeforeDiscount - (productOfferDiscount + categoryOfferDiscount));
+    // Calculate subtotal after offers
+    const subtotalAfterOffers = Math.max(0, totalBeforeDiscount - totalDiscount);
 
     console.log("💰 Total Before Discount:", totalBeforeDiscount);
     console.log("🛒 Subtotal After Offers:", subtotalAfterOffers);
 
-    // Apply coupon to the subtotalAfterOffers
+    // Apply coupon discount
     let couponDiscount = 0;
     let coupon = null;
 
@@ -554,7 +546,6 @@ const createOrder = async (req, res) => {
           return res.status(400).json({ message: 'Coupon has expired.' });
         }
 
-        // Ensure coupon applies to all products if no category/product restrictions
         const isCouponValidForCart = 
           (coupon.categoryIds.length === 0 && coupon.productIds.length === 0) || 
           cart.some(item => 
@@ -587,8 +578,7 @@ const createOrder = async (req, res) => {
     if (isNaN(finalTotal)) {
       console.error("❌ Error: finalTotal is NaN! Debugging values:");
       console.log("totalBeforeDiscount:", totalBeforeDiscount);
-      console.log("productOfferDiscount:", productOfferDiscount);
-      console.log("categoryOfferDiscount:", categoryOfferDiscount);
+      console.log("totalDiscount:", totalDiscount);
       console.log("subtotalAfterOffers:", subtotalAfterOffers);
       console.log("couponDiscount:", couponDiscount);
       return res.status(500).json({ message: "Internal error: invalid total calculation." });
@@ -613,12 +603,11 @@ const createOrder = async (req, res) => {
         productImage: item.productId.productImage,
       })),
       totalBeforeDiscount: Number(totalBeforeDiscount) || 0,
-      discount: Number(productOfferDiscount + categoryOfferDiscount + couponDiscount) || 0,
+      discount: Number(totalDiscount + couponDiscount) || 0,
       totalAmount: Number(finalTotal) || 0,
       status: 'Pending',
       couponApplied: coupon?._id || null,
-      productOfferDiscount,
-      categoryOfferDiscount,
+      totalDiscount,
       couponDiscount,
     });
 
@@ -653,8 +642,6 @@ const createOrder = async (req, res) => {
     });
   }
 };
-
-
 
 
 
