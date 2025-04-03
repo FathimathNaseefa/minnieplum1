@@ -362,6 +362,9 @@
 <script>
 
 
+
+
+
 function openAddressModal() {
     console.log('openAddressModal called'); // Debug log
     document.getElementById('addressModal').style.display = 'block';
@@ -432,7 +435,9 @@ document.querySelectorAll('input[name="payment"]').forEach(radio => {
     const orderTotalText = document.getElementById("orderTotal").innerText;
     const cleanedText = orderTotalText.replace(/[^\d.]/g, "");
     const amount = parseFloat(cleanedText);
-
+    const originalTotalElement = document.querySelector(".order-summary p:first-child");
+    const originalAmount = parseFloat(originalTotalElement.innerText.replace(/[^\d.]/g, "")) || 0;
+    const discount = originalAmount - amount;
     // Get selected shipping address
     const selectedAddressId = document.getElementById("selectedAddressId").value;
     if (!selectedAddressId) {
@@ -442,7 +447,7 @@ document.querySelectorAll('input[name="payment"]').forEach(radio => {
 
     document.getElementById("orderForm").querySelector("input[name='addressId']").value = selectedAddressId;
 
-    // Wallet Payment Logic
+    
     if (selectedMethod === "wallet") {
         let walletBalance = parseFloat(document.getElementById("wallet-balance-checkout").innerText);
         
@@ -450,8 +455,9 @@ document.querySelectorAll('input[name="payment"]').forEach(radio => {
             Swal.fire("Insufficient Balance", "Your wallet balance is not enough for this order. Please choose another payment method.", "warning");
             return false;
         }
-
-        // Call backend to process wallet payment
+        
+    
+        
         fetch("/checkout/wallet-payment", {
             method: "POST",
             headers: {
@@ -460,8 +466,10 @@ document.querySelectorAll('input[name="payment"]').forEach(radio => {
             },
             body: JSON.stringify({
                 amount,
+                discount:discount,
                 paymentMethod: "wallet",
-                shippingAddressId: selectedAddressId
+                shippingAddressId: selectedAddressId,
+                
             })
         })
         .then(response => response.json())
@@ -487,6 +495,9 @@ document.querySelectorAll('input[name="payment"]').forEach(radio => {
         return false;
     }
 
+    
+
+
     // Razorpay Payment Logic
     if (selectedMethod === "razorpay") {
         fetch('/create-razorpayorder', {
@@ -498,6 +509,7 @@ document.querySelectorAll('input[name="payment"]').forEach(radio => {
             body: JSON.stringify({ 
                 amount, 
                 currency: "INR", 
+                discount,
                 paymentMethod: "razorpay",
                 shippingAddressId: selectedAddressId
             })
