@@ -457,32 +457,24 @@
 
 <script>
 
-
-
-
-
-
-
-function fetchProducts() {
-    const searchInput = document.querySelector("#searchBox");
+function fetchProducts(page = 1) {
+    const searchInput = document.querySelector("#searchBox").value.trim();
     const categoryCheckboxes = document.querySelectorAll(".category-filter:checked");
-    const productList = document.getElementById("productList");
-    const sortBy = document.querySelector("#sort-by");
-    const outOfStockCheckbox = document.getElementById("show-out-of-stock");
+    const sortBy = document.querySelector("#sort-by").value;
+    const outOfStock = document.getElementById("show-out-of-stock").checked ? "true" : "false";
 
-    const query = searchInput.value.trim();
     const selectedCategories = Array.from(categoryCheckboxes).map(checkbox => checkbox.value).join(",");
-    const sort = sortBy.value;
-    const outOfStock = outOfStockCheckbox.checked ? "true" : "false";
+    
+    console.log("Fetching products with:", { page, searchInput, selectedCategories, sortBy, outOfStock });
 
-    console.log("Fetching products with:", { query, selectedCategories, sort, outOfStock });
-
-    fetch(`/shop-data?query=${encodeURIComponent(query)}&categories=${encodeURIComponent(selectedCategories)}&sort=${sort}&outOfStock=${outOfStock}&_=${new Date().getTime()}`)
+    fetch(`/shop-data?page=${page}&query=${encodeURIComponent(searchInput)}&categories=${encodeURIComponent(selectedCategories)}&sort=${sortBy}&outOfStock=${outOfStock}&_=${new Date().getTime()}`)
         .then(response => response.json())
         .then(data => {
             console.log("Response received:", data.products);
 
+            const productList = document.getElementById("productList");
             productList.innerHTML = "";
+
             if (!data.success || data.products.length === 0) {
                 productList.innerHTML = '<p style="text-align:center;">No products found</p>';
                 return;
@@ -491,6 +483,7 @@ function fetchProducts() {
             data.products.forEach(product => {
                 let productItem = document.createElement("div");
                 productItem.classList.add("product-card");
+
                 let discountPercent = product.salePrice > product.finalPrice
                     ? Math.round(((product.salePrice - product.finalPrice) / product.salePrice) * 100)
                     : 0;
@@ -509,20 +502,55 @@ function fetchProducts() {
                     </a>
                 `;
                 productList.appendChild(productItem);
-            }) 
+            });
+
+            // ✅ Update Pagination Links Dynamically
+            updatePagination(data.totalPages, data.currentPage, searchInput, sortBy, selectedCategories, outOfStock);
         })
         .catch(error => console.error("Error fetching products:", error));
 }
 
+function updatePagination(totalPages, currentPage, searchQuery, sort, categories, outOfStock) {
+    const paginationDiv = document.getElementById("pagination");
+    paginationDiv.innerHTML = "";
 
-  // Attach event listeners to pagination links
-  document.querySelectorAll("#pagination .page-link").forEach(link => {
-    link.addEventListener("click", function (e) {
-      e.preventDefault();
-      const page = this.getAttribute("data-page");
-      fetchProducts(page);
+    if (currentPage > 1) {
+        paginationDiv.innerHTML += `<a class="page-link" href="#" data-page="${currentPage - 1}">Prev</a>`;
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+        paginationDiv.innerHTML += `<a class="page-link ${currentPage === i ? 'active' : ''}" href="#" data-page="${i}">${i}</a>`;
+    }
+
+    if (currentPage < totalPages) {
+        paginationDiv.innerHTML += `<a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>`;
+    }
+
+    // ✅ Attach Event Listeners for Pagination
+    document.querySelectorAll("#pagination .page-link").forEach(link => {
+        link.addEventListener("click", function (e) {
+            e.preventDefault();
+            const page = this.getAttribute("data-page");
+            fetchProducts(page);
+        });
     });
-  });
+}
+
+// ✅ Attach Event Listeners on DOM Load
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.querySelector("#searchBox");
+    const categoryCheckboxes = document.querySelectorAll(".category-filter");
+    const sortBy = document.querySelector("#sort-by");
+    const outOfStockCheckbox = document.getElementById("show-out-of-stock");
+
+    categoryCheckboxes.forEach(checkbox => checkbox.addEventListener("change", () => fetchProducts(1)));
+    searchInput.addEventListener("input", () => setTimeout(() => fetchProducts(1), 300));
+    sortBy.addEventListener("change", () => fetchProducts(1));
+    outOfStockCheckbox.addEventListener("change", () => fetchProducts(1));
+
+    fetchProducts(1);
+});
+
 
 
 

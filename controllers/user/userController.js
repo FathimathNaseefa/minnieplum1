@@ -463,33 +463,25 @@ console.log("🔍 Populated Products Response:", JSON.stringify(products, null, 
 };
 
 
-
-
-
 const getFilteredProducts = async (req, res) => {
   try {
-    const { query, category, sort, outOfStock, categories } = req.query;
-    let filter = {};
-    console.log("Received Out-of-Stock Filter:", req.query.outOfStock);
-console.log("Final Mongoose Filter:", filter); // Debugging
+    const { query, categories, sort, outOfStock, page = 1 } = req.query;
+    const limit = 9;
+    const skip = (page - 1) * limit;
+
+    let filter = { isBlocked: false, status: "Available" };
 
     if (query) {
       const regexPattern = query.length > 1 ? `(^${query}|${query})` : `^${query}`;
-      filter.productName = {
-        $regex: regexPattern,
-        $options: "i",
-      };
+      filter.productName = { $regex: regexPattern, $options: "i" };
     }
 
-if (req.query.outOfStock === "true") {
-  filter = { ...filter, stock: 0 };  // ✅ Ensures filter updates properly
-} else {
-  filter = { ...filter, stock: { $gt: 0 } };  // ✅ Ensures filter updates properly
-}
+    if (outOfStock === "true") {
+      filter.stock = 0;
+    } else {
+      filter.stock = { $gt: 0 };
+    }
 
-
-
-    // Handle multiple categories (if `categories` is an array of IDs)
     if (categories) {
       const categoryIds = categories.split(",").filter(id => /^[0-9a-fA-F]{24}$/.test(id));
       if (categoryIds.length > 0) {
@@ -497,74 +489,62 @@ if (req.query.outOfStock === "true") {
       }
     }
 
+    // ✅ Define sorting based on query parameter
+    let sortQuery = {};
+    switch (sort) {
+      case "price_asc": // Low to High
+        sortQuery["salePrice"] = 1;
+        break;
+      case "price_desc": // High to Low
+        sortQuery["salePrice"] = -1;
+        break;
+      case "popularity":
+        sortQuery["popularity"] = -1; // Assuming you have a `popularity` field
+        break;
+      case "ratings":
+        sortQuery["averageRating"] = -1; // Assuming you have an `averageRating` field
+        break;
+      case "a_z":
+        sortQuery["productName"] = 1;
+        break;
+      case "z_a":
+        sortQuery["productName"] = -1;
+        break;
+      default:
+        sortQuery["createdAt"] = -1; // Default: Newest first
+        break;
+    }
 
-let products = await Product.find(filter)
-.collation({ locale: "en", strength: 2 }) // Ensures case-insensitive sorting
-.populate("pdtOffer", "discountValue discountType")
-.populate("catOffer", "discountValue discountType");
+    let products = await Product.find(filter)
+      .sort(sortQuery) // ✅ Sorting applied at the DB level
+      .skip(skip)
+      .limit(limit)
+      .collation({ locale: "en", strength: 2 }) // Case-insensitive sorting
+      .populate("pdtOffer", "discountValue discountType")
+      .populate("catOffer", "discountValue discountType");
 
+    products = products.map(product => {
+      let salePrice = product.salePrice;
+      let discount = Math.max(
+        product.pdtOffer?.discountValue || 0,
+        product.catOffer?.discountValue || 0
+      );
 
-products = products.map((product) => {
-let salePrice = product.salePrice;
-let pdtDiscount =
-  product.pdtOffer?.discountType === "percentage"
-    ? product.pdtOffer.discountValue
-    : 0;
-let catDiscount =
-  product.catOffer?.discountType === "percentage"
-    ? product.catOffer.discountValue
-    : 0;
+      let finalPrice = salePrice - salePrice * (discount / 100);
+      product.finalPrice = Math.round(finalPrice / 10) * 10;
+      product.discountPercent = Math.round(((salePrice - product.finalPrice) / salePrice) * 100);
+      return product;
+    });
 
-// Use the higher of the two discounts
-let discount = Math.max(pdtDiscount, catDiscount);
-let finalPrice = salePrice - salePrice * (discount / 100);
+    const totalProducts = await Product.countDocuments(filter);
+    const totalPages = Math.ceil(totalProducts / limit) || 1;
 
-// Round the final price
-product.finalPrice = Math.round(finalPrice / 10) * 10;
-product.discountPercent = Math.round(
-  ((salePrice - product.finalPrice) / salePrice) * 100
-);
-
-return product;
-});
-
-
-
-// 🔹 Sorting (Using Final Price Instead of Sale Price)
-switch (sort) {
-case "price_asc": // Low to High
-  products.sort((a, b) => a.finalPrice - b.finalPrice);
-  break;
-case "price_desc": // High to Low
-  products.sort((a, b) => b.finalPrice - a.finalPrice);
-  break;
-case "popularity":
-  products.sort((a, b) => b.popularity - a.popularity);
-  break;
-case "ratings":
-  products.sort((a, b) => b.averageRating - a.averageRating);
-  break;
-case "a_z":
-  products.sort((a, b) => a.productName.localeCompare(b.productName));
-  break;
-case "z_a":
-  products.sort((a, b) => b.productName.localeCompare(a.productName));
-  break;
-default:
-  products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  break;
-}
-
-res.json({ success: true, products,
-  });
-} catch (error) {
-console.error("Error fetching products:", error);
-res.status(500).json({ success: false, error: "Internal server error" });
-}
+    res.json({ success: true, products, totalPages, currentPage: parseInt(page) });
+  } catch (error) {
+    console.error("Error fetching filtered products:", error);
+    res.status(500).json({ success: false, message: "Error fetching products" });
+  }
 };
-
-
-
 
 
 
