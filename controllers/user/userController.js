@@ -384,6 +384,7 @@ const loadShoppingPage = async (req, res) => {
     const skip = (page - 1) * limit;
 
     let query = { isBlocked: false, status: 'Available' };
+   
 
     if (selectedCategories.length > 0) {
       query.category = { $in: selectedCategories };
@@ -440,7 +441,7 @@ console.log("🔍 Populated Products Response:", JSON.stringify(products, null, 
     
     const totalProducts = await Product.countDocuments(query);
     const totalPages = Math.ceil(totalProducts / limit) || 1; // Ensure at least 1 page
-
+   
 
     res.render('shop', {
       user: userData,
@@ -469,6 +470,8 @@ const getFilteredProducts = async (req, res) => {
   try {
     const { query, category, sort, outOfStock, categories } = req.query;
     let filter = {};
+    console.log("Received Out-of-Stock Filter:", req.query.outOfStock);
+console.log("Final Mongoose Filter:", filter); // Debugging
 
     if (query) {
       const regexPattern = query.length > 1 ? `(^${query}|${query})` : `^${query}`;
@@ -477,8 +480,14 @@ const getFilteredProducts = async (req, res) => {
         $options: "i",
       };
     }
-    
-    
+
+if (req.query.outOfStock === "true") {
+  filter = { ...filter, stock: 0 };  // ✅ Ensures filter updates properly
+} else {
+  filter = { ...filter, stock: { $gt: 0 } };  // ✅ Ensures filter updates properly
+}
+
+
 
     // Handle multiple categories (if `categories` is an array of IDs)
     if (categories) {
@@ -487,15 +496,6 @@ const getFilteredProducts = async (req, res) => {
         filter.category = { $in: categoryIds };
       }
     }
-
-    // 🔹 Out-of-Stock Filter
-    if (outOfStock === "true") {
-      filter.stock = 0; // Show only out-of-stock items
-    } else {
-      filter.stock = { $gt: 0 }; // Show only in-stock items
-    }
-
-
 
 
 let products = await Product.find(filter)
@@ -562,6 +562,9 @@ console.error("Error fetching products:", error);
 res.status(500).json({ success: false, error: "Internal server error" });
 }
 };
+
+
+
 
 
 

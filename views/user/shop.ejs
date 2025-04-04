@@ -13,7 +13,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* margin-bottom: 20px; */
     margin: 10px 20px; 
   }
 
@@ -86,9 +85,6 @@
     margin-bottom: 20px;
   }
   .filtersection {
-    /* display: flex;
-    align-items: center;
-    justify-content: center; */
     margin-left: 100px; /* Add left margin for spacing */
 }
 
@@ -297,8 +293,6 @@
 
 .search-button {
     background: #febd69;
-    /* border: none;
-    padding: 10px 15px; */
     cursor: pointer;
 }
 
@@ -307,7 +301,6 @@
 }
 .category-filter {
      display: block;   
-    /* width: 100%; */
     padding: 8px;
     border-radius: 5px;
     background: rgb(235, 230, 230);
@@ -533,8 +526,6 @@ function fetchProducts() {
 
 
 
-
-// Ensure event listeners are inside DOMContentLoaded
 document.addEventListener("DOMContentLoaded", function () {
     console.log("fetchProducts is defined:", typeof fetchProducts); // Debugging
 
@@ -543,14 +534,33 @@ document.addEventListener("DOMContentLoaded", function () {
     const sortBy = document.querySelector("#sort-by");
     const outOfStockCheckbox = document.getElementById("show-out-of-stock");
 
+    // 🛠 Restore Out-of-Stock Filter State from LocalStorage
+    const savedOutOfStockState = localStorage.getItem("showOutOfStock") === "true";
+    if (outOfStockCheckbox) {
+        outOfStockCheckbox.checked = savedOutOfStockState;
+    }
+
+    console.log("Saved Out-of-Stock State in Local Storage:", savedOutOfStockState);
+    console.log("Checkbox Checked on Load:", outOfStockCheckbox.checked);
+
+    // 🛠 Save State on Change
+    outOfStockCheckbox.addEventListener("change", () => {
+        localStorage.setItem("showOutOfStock", outOfStockCheckbox.checked);
+        fetchProducts(); // Refresh products when toggling
+    });
+
     categoryCheckboxes.forEach(checkbox => {
         checkbox.addEventListener("change", fetchProducts);
     });
 
     searchInput.addEventListener("input", () => setTimeout(fetchProducts, 300));
     sortBy.addEventListener("change", fetchProducts);
-    outOfStockCheckbox.addEventListener("change", fetchProducts);
+
+    // 🔥 Ensure Products Load with the Correct Filter on Page Load
+    fetchProducts();
 });
+
+
 
 // Debug: Log sorting selection changes
 document.addEventListener("click", function (event) {
@@ -576,7 +586,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
 
 
 
