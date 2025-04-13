@@ -366,7 +366,7 @@
         <option value="price_desc">Price: High to Low</option>
         <option value="ratings">Average Ratings</option>
         <option value="featured">Featured</option>
-        <option value="new_arrivals">New Arrivals</option>
+        <option value="new_arrivals">New Arrivals</option> 
         <option value="a_z">A - Z</option>
         <option value="z_a">Z - A</option>
     </select>
@@ -414,9 +414,9 @@
             <a href="/productDetails?id=<%= product._id %>">
               <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>" style="height:170px">
               <h5><%= product.productName %></h5>
-              <!-- <p>₹<%= product.salePrice.toLocaleString('en-IN') %></p> -->
+              
               <p>
-                <!-- <strong>Price:</strong>  -->
+               
                 <% if (product.discountPercent > 0) { %>
                     ₹<%= product.finalPrice.toLocaleString('en-IN') %>
                     <span style="text-decoration: line-through; color: gray; margin-left: 5px;">
@@ -536,7 +536,7 @@ function updatePagination(totalPages, currentPage, searchQuery, sort, categories
     });
 }
 
-// ✅ Attach Event Listeners on DOM Load
+
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.querySelector("#searchBox");
     const categoryCheckboxes = document.querySelectorAll(".category-filter");
@@ -616,8 +616,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-
 </script>
 
 <%- include("../../views/partials/user/footer") %>
+ 
 
+ 
