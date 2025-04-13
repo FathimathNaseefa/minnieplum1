@@ -462,16 +462,16 @@ console.log("🔍 Populated Products Response:", JSON.stringify(products, null, 
 
 
 
+const mongoose = require("mongoose");
+
 const getFilteredProducts = async (req, res) => {
   try {
-    console.log('=== STARTING REQUEST ===');
     const { query: searchQuery, categories, sort = 'createdAt_desc', outOfStock, page = 1 } = req.query;
     const limit = 9;
     const skip = (page - 1) * limit;
 
-    // 1. Build the complete filter object
-    const filter = { 
-      isBlocked: false, 
+    const match = {
+      isBlocked: false,
       status: "Available",
       stock: outOfStock === "true" ? 0 : { $gt: 0 }
     };
@@ -479,68 +479,95 @@ const getFilteredProducts = async (req, res) => {
     // Search filter
     if (searchQuery) {
       const regexPattern = searchQuery.length > 1 ? `(^${searchQuery}|${searchQuery})` : `^${searchQuery}`;
-      filter.productName = { $regex: regexPattern, $options: "i" };
+      match.productName = { $regex: regexPattern, $options: "i" };
     }
 
     // Category filter
+    let categoryIds = [];
     if (categories && categories !== '""' && categories !== "undefined") {
-      const categoryIds = categories.split(",").filter(id => /^[0-9a-fA-F]{24}$/.test(id.trim()));
+      categoryIds = categories
+        .split(",")
+        .filter(id => /^[0-9a-fA-F]{24}$/.test(id.trim()))
+        .map(id => new mongoose.Types.ObjectId(id));
       if (categoryIds.length > 0) {
-        filter.category = { $in: categoryIds };
+        match.category = { $in: categoryIds };
       }
     }
 
-    // 2. Get total count with current filters
-    const totalProducts = await Product.countDocuments(filter);
+    // Sorting logic
+    const sortStage = {};
+    if (sort === 'price_asc') sortStage.finalPrice = 1;
+    else if (sort === 'price_desc') sortStage.finalPrice = -1;
+    else if (sort === 'createdAt_asc') sortStage.createdAt = 1;
+    else if (sort === 'createdAt_desc') sortStage.createdAt = -1;
+    else if (sort === 'a_z') sortStage.productName = 1;
+    else if (sort === 'z_a') sortStage.productName = -1;
+    else sortStage.createdAt = -1;
+
+    const pipeline = [
+      { $match: match },
+      {
+        $lookup: {
+          from: "offers",
+          localField: "pdtOffer",
+          foreignField: "_id",
+          as: "pdtOffer"
+        }
+      },
+      { $unwind: { path: "$pdtOffer", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "offers",
+          localField: "catOffer",
+          foreignField: "_id",
+          as: "catOffer"
+        }
+      },
+      { $unwind: { path: "$catOffer", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          discountPercent: {
+            $max: [
+              { $ifNull: ["$pdtOffer.discountValue", 0] },
+              { $ifNull: ["$catOffer.discountValue", 0] }
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          finalPrice: {
+            $round: [
+              {
+                $multiply: [
+                  { $subtract: [1, { $divide: ["$discountPercent", 100] }] },
+                  "$salePrice"
+                ]
+              },
+              -1 // nearest 10
+            ]
+          }
+        }
+      },
+      { $sort: sortStage },
+      {
+        $facet: {
+          products: [
+            { $skip: skip },
+            { $limit: limit }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
+
+    const result = await Product.aggregate(pipeline);
+
+    const products = result[0]?.products || [];
+    const totalProducts = result[0]?.totalCount[0]?.count || 0;
     const totalPages = Math.ceil(totalProducts / limit) || 1;
-
-    // 3. Prepare base query with sorting
-    let query = Product.find(filter)
-      .collation({ locale: "en", strength: 2 })
-      .populate("pdtOffer", "discountValue discountType")
-      .populate("catOffer", "discountValue discountType");
-
-    // Apply database sorting for non-price fields
-    const sortOptions = {
-      'price_asc': { salePrice: 1 }, // Approximate sort - will refine client-side
-      'price_desc': { salePrice: -1 }, // Approximate sort - will refine client-side
-      'popularity_desc': { popularity: -1 },
-      'ratings_desc': { averageRating: -1 },
-      'a_z': { productName: 1 },
-      'z_a': { productName: -1 },
-      'createdAt_desc': { createdAt: -1 },
-      'createdAt_asc': { createdAt: 1 }
-    };
-
-    if (sortOptions[sort]) {
-      query = query.sort(sortOptions[sort]);
-    }
-
-    // 4. Execute query with pagination
-    let products = await query.skip(skip).limit(limit);
-
-    // 5. Calculate final prices and refine price sorting
-    products = products.map(product => {
-      const salePrice = product.salePrice;
-      const discount = Math.max(
-        product.pdtOffer?.discountValue || 0,
-        product.catOffer?.discountValue || 0
-      );
-      const finalPrice = Math.round((salePrice - salePrice * (discount / 100)) / 10) * 10;
-      
-      return {
-        ...product.toObject(),
-        finalPrice,
-        discountPercent: discount
-      };
-    });
-
-    // Refine price sorting client-side if needed
-    if (sort === 'price_asc') {
-      products.sort((a, b) => a.finalPrice - b.finalPrice);
-    } else if (sort === 'price_desc') {
-      products.sort((a, b) => b.finalPrice - a.finalPrice);
-    }
 
     res.json({
       success: true,
@@ -552,13 +579,16 @@ const getFilteredProducts = async (req, res) => {
 
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: "Error fetching products",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
+
+
+
 
 module.exports = {
   loadHomepage,
