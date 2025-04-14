@@ -295,6 +295,7 @@ const rejectReturn = async (req, res) => {
 const Transaction = require('../../models/transactionSchema');
 
 
+
 const returnStatus = async (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
@@ -331,15 +332,20 @@ const returnStatus = async (req, res) => {
 
       console.log('👤 User found:', user._id);
       console.log('💰 User Wallet Before Refund:', user.wallet);
-      console.log('💵 Refund Amount:', updatedOrder.totalAmount);
 
-      if (!updatedOrder.totalAmount || updatedOrder.totalAmount <= 0) {
+      const refundAmount = updatedOrder.totalAmount;
+      const roundedRefundAmount = Math.round(refundAmount / 10) * 10; // Round to nearest 10
+
+      console.log('💵 Original Refund Amount:', refundAmount);
+      console.log('💰 Rounded Refund Amount (nearest 10):', roundedRefundAmount);
+
+      if (!roundedRefundAmount || roundedRefundAmount <= 0) {
         console.log('❌ Invalid refund amount.');
         return res.status(400).json({ success: false, message: 'Invalid refund amount.' });
       }
 
       // ✅ Ensure wallet is a number
-      user.wallet = (user.wallet || 0) + updatedOrder.totalAmount;
+      user.wallet = (user.wallet || 0) + roundedRefundAmount;
 
       // ✅ Ensure walletHistory is initialized
       if (!Array.isArray(user.walletHistory)) {
@@ -348,7 +354,7 @@ const returnStatus = async (req, res) => {
 
       // ✅ Create refund transaction
       const walletTransaction = {
-        amount: updatedOrder.totalAmount,
+        amount: roundedRefundAmount,
         type: 'credit',
         description: `Refund for returned order #${updatedOrder._id}`,
         date: new Date(),
@@ -367,7 +373,7 @@ const returnStatus = async (req, res) => {
         transactionId: `txn_${Date.now()}`, // Generate unique transactionId
         user: user._id,
         transactionType: 'credit',
-        amount: updatedOrder.totalAmount,
+        amount: roundedRefundAmount,
         description: `Refund for returned order #${updatedOrder._id}`,
         date: new Date(),
         source: 'refund',
@@ -379,7 +385,7 @@ const returnStatus = async (req, res) => {
 
       return res.json({
         success: true,
-        message: `Return approved. ₹${updatedOrder.totalAmount} has been credited to your wallet.`,
+        message: `Return approved. ₹${roundedRefundAmount} has been credited to your wallet.`,
         walletBalance: user.wallet,
         order: updatedOrder,
       });
@@ -395,6 +401,10 @@ const returnStatus = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+
+
+
+
 
 
 const orderDetails = async (req, res) => {

@@ -325,6 +325,10 @@ const downloadInvoice = async (req, res) => {
   }
 };
 
+
+
+
+
 const rePayment = async (req, res) => {
   try {
     let { orderId } = req.params;
@@ -383,6 +387,10 @@ const rePayment = async (req, res) => {
   }
 };
 
+
+
+
+
 const paymentSuccess = async (req, res) => {
   try {
     const { orderId, paymentId } = req.query;
@@ -393,6 +401,7 @@ const paymentSuccess = async (req, res) => {
       return res.json({ success: false, message: 'Order ID missing' });
     }
 
+    // Find the order using orderId
     const order = await Order.findOne({ orderId });
 
     if (!order) {
@@ -400,17 +409,32 @@ const paymentSuccess = async (req, res) => {
       return res.json({ success: false, message: 'Order not found' });
     }
 
-    order.paymentStatus = 'Paid';
-    order.razorpayPaymentId = paymentId;
-    await order.save();
+    // If paymentId is provided, update the order status
+    if (paymentId) {
+      order.paymentStatus = 'Paid';
+      order.razorpayPaymentId = paymentId;
 
-    console.log('✅ Payment status updated successfully!');
-    res.json({ success: true, orderId });
+      // Update order status and save the order
+      await order.save();
+      console.log('✅ Payment status updated successfully!');
+    }
+
+    // Clear the cart after successful repayment
+    const user = await User.findById(order.userId);
+    if (user) {
+      await User.updateOne({ _id: user._id }, { $set: { cart: [] } }); // Clear the user's cart
+      console.log('✅ User cart cleared after repayment.');
+    } else {
+      console.log('❌ User not found for clearing cart');
+    }
+
+    res.json({ success: true, message: 'Payment successful, cart cleared', orderId });
   } catch (error) {
     console.error('❌ Error in paymentSuccess:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+
 
 module.exports = {
   createRazorpayOrder,
