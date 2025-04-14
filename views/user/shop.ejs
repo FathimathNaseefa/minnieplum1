@@ -457,138 +457,48 @@
 
 <script>
 
-function fetchProducts(page = 1) {
-    const searchInput = document.querySelector("#searchBox").value.trim();
-    const categoryCheckboxes = document.querySelectorAll(".category-filter:checked");
-    const sortBy = document.querySelector("#sort-by").value;
-    const outOfStock = document.getElementById("show-out-of-stock").checked ? "true" : "false";
 
-    const selectedCategories = Array.from(categoryCheckboxes).map(checkbox => checkbox.value).join(",");
-    
-    console.log("Fetching products with:", { page, searchInput, selectedCategories, sortBy, outOfStock });
 
-    fetch(`/shop-data?page=${page}&query=${encodeURIComponent(searchInput)}&categories=${encodeURIComponent(selectedCategories)}&sort=${sortBy}&outOfStock=${outOfStock}&_=${new Date().getTime()}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log("Response received:", data.products);
+// Main product fetching function
+async function fetchProducts(page = 1) {
+    try {
+        // Get current filter values
+        const searchInput = document.querySelector("#searchBox").value.trim();
+        const categoryCheckboxes = document.querySelectorAll(".category-filter:checked");
+        const sortBy = document.querySelector("#sort-by").value;
+        const outOfStock = document.getElementById("show-out-of-stock").checked ? "true" : "false";
+        const selectedCategories = Array.from(categoryCheckboxes).map(checkbox => checkbox.value).join(",");
 
-            const productList = document.getElementById("productList");
-            productList.innerHTML = "";
-
-            if (!data.success || data.products.length === 0) {
-                productList.innerHTML = '<p style="text-align:center;">No products found</p>';
-                return;
-            }
-
-            data.products.forEach(product => {
-                let productItem = document.createElement("div");
-                productItem.classList.add("product-card");
-
-                let discountPercent = product.salePrice > product.finalPrice
-                    ? Math.round(((product.salePrice - product.finalPrice) / product.salePrice) * 100)
-                    : 0;
-
-                productItem.innerHTML = `
-                    <a href="/productDetails?id=${product._id}">
-                        <img src="/uploads/re-image/${product.productImage[0]}" alt="${product.productName}" style="height:170px" />
-                        <h5>${product.productName}</h5>
-                        <p>
-                            ${discountPercent > 0 
-                                ? `<s>₹${product.salePrice.toLocaleString('en-IN')}</s> ₹${product.finalPrice.toLocaleString('en-IN')}
-                                   <span style="color: red; font-weight: bold;">(${discountPercent}% OFF)</span>` 
-                                : `₹${product.salePrice.toLocaleString('en-IN')}`
-                            }
-                        </p>
-                    </a>
-                `;
-                productList.appendChild(productItem);
-            });
-
-            // ✅ Update Pagination Links Dynamically
-            updatePagination(data.totalPages, data.currentPage, searchInput, sortBy, selectedCategories, outOfStock);
-        })
-        .catch(error => console.error("Error fetching products:", error));
-}
-
-function updatePagination(totalPages, currentPage, searchQuery, sort, categories, outOfStock) {
-    const paginationDiv = document.getElementById("pagination");
-    paginationDiv.innerHTML = "";
-
-    if (currentPage > 1) {
-        paginationDiv.innerHTML += `<a class="page-link" href="#" data-page="${currentPage - 1}">Prev</a>`;
-    }
-
-    for (let i = 1; i <= totalPages; i++) {
-        paginationDiv.innerHTML += `<a class="page-link ${currentPage === i ? 'active' : ''}" href="#" data-page="${i}">${i}</a>`;
-    }
-
-    if (currentPage < totalPages) {
-        paginationDiv.innerHTML += `<a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>`;
-    }
-
-    // ✅ Attach Event Listeners for Pagination
-    document.querySelectorAll("#pagination .page-link").forEach(link => {
-        link.addEventListener("click", function (e) {
-            e.preventDefault();
-            const page = this.getAttribute("data-page");
-            fetchProducts(page);
+        console.log("Fetching products with:", { 
+            page, 
+            searchInput, 
+            selectedCategories, 
+            sortBy, 
+            outOfStock 
         });
-    });
-}
 
+        // Make API request
+        const response = await fetch(`/shop-data?page=${page}&query=${encodeURIComponent(searchInput)}&categories=${encodeURIComponent(selectedCategories)}&sort=${sortBy}&outOfStock=${outOfStock}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.querySelector("#searchBox");
-    const categoryCheckboxes = document.querySelectorAll(".category-filter");
-    const sortBy = document.querySelector("#sort-by");
-    const outOfStockCheckbox = document.getElementById("show-out-of-stock");
+        const data = await response.json();
+        console.log("Response received:", data);
 
-    categoryCheckboxes.forEach(checkbox => checkbox.addEventListener("change", () => fetchProducts(1)));
-    searchInput.addEventListener("input", () => setTimeout(() => fetchProducts(1), 300));
-    sortBy.addEventListener("change", () => fetchProducts(1));
-    outOfStockCheckbox.addEventListener("change", () => fetchProducts(1));
+        // Update product display
+        updateProductList(data.products);
+        
+        // Update pagination
+        updatePagination(data.totalPages, data.currentPage);
 
-    fetchProducts(1);
-});
-
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("fetchProducts is defined:", typeof fetchProducts); // Debugging
-
-    const searchInput = document.querySelector("#searchBox");
-    const categoryCheckboxes = document.querySelectorAll(".category-filter");
-    const sortBy = document.querySelector("#sort-by");
-    const outOfStockCheckbox = document.getElementById("show-out-of-stock");
-
-    // 🛠 Restore Out-of-Stock Filter State from LocalStorage
-    const savedOutOfStockState = localStorage.getItem("showOutOfStock") === "true";
-    if (outOfStockCheckbox) {
-        outOfStockCheckbox.checked = savedOutOfStockState;
+    } catch (error) {
+        console.error("Fetch error:", error);
+        document.getElementById("productList").innerHTML = 
+            '<p style="text-align:center;color:red;">Error loading products</p>';
     }
-
-    console.log("Saved Out-of-Stock State in Local Storage:", savedOutOfStockState);
-    console.log("Checkbox Checked on Load:", outOfStockCheckbox.checked);
-
-    // 🛠 Save State on Change
-    outOfStockCheckbox.addEventListener("change", () => {
-        localStorage.setItem("showOutOfStock", outOfStockCheckbox.checked);
-        fetchProducts(); // Refresh products when toggling
-    });
-
-    categoryCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener("change", fetchProducts);
-    });
-
-    searchInput.addEventListener("input", () => setTimeout(fetchProducts, 300));
-    sortBy.addEventListener("change", fetchProducts);
-
-    // 🔥 Ensure Products Load with the Correct Filter on Page Load
-    fetchProducts();
-});
-
-
+}
 
 // Debug: Log sorting selection changes
 document.addEventListener("click", function (event) {
@@ -604,17 +514,101 @@ document.addEventListener("click", function (event) {
     }
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+// Update product list HTML
+function updateProductList(products) {
+    const productList = document.getElementById("productList");
+    
+    if (!products || products.length === 0) {
+        productList.innerHTML = '<p style="text-align:center;">No products found</p>';
+        return;
+    }
+
+    productList.innerHTML = products.map(product => {
+        const discountPercent = product.salePrice > product.finalPrice
+            ? Math.round(((product.salePrice - product.finalPrice) / product.salePrice) * 100)
+            : 0;
+
+        return `
+            <div class="product-card">
+                <a href="/productDetails?id=${product._id}">
+                    <img src="/uploads/re-image/${product.productImage[0]}" alt="${product.productName}" style="height:170px">
+                    <h5>${product.productName}</h5>
+                    <p>
+                        ${discountPercent > 0 
+                            ? `<s>₹${product.salePrice.toLocaleString('en-IN')}</s> ₹${product.finalPrice.toLocaleString('en-IN')}
+                               <span style="color: red; font-weight: bold;">(${discountPercent}% OFF)</span>` 
+                            : `₹${product.salePrice.toLocaleString('en-IN')}`
+                        }
+                    </p>
+                </a>
+            </div>
+        `;
+    }).join('');
+}
+
+// Update pagination controls
+function updatePagination(totalPages, currentPage) {
+    const paginationDiv = document.getElementById("pagination");
+    let html = [];
+    
+    if (currentPage > 1) {
+        html.push(`<a class="page-link" href="#" data-page="${currentPage - 1}">Prev</a>`);
+    }
+
+    // Show page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        html.push(`<a class="page-link ${currentPage === i ? 'active' : ''}" 
+                   href="#" data-page="${i}">${i}</a>`);
+    }
+
+    if (currentPage < totalPages) {
+        html.push(`<a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>`);
+    }
+
+    paginationDiv.innerHTML = html.join('');
+    
+    // Attach event listeners to new pagination links
+    setupPagination();
+}
+
+// Set up pagination event listeners
+function setupPagination() {
     document.querySelectorAll("#pagination .page-link").forEach(link => {
-        link.addEventListener("click", function () {
-            const page = this.getAttribute("data-page");
-            const urlParams = new URLSearchParams(window.location.search);
-            urlParams.set('page', page);
-            window.location.search = urlParams.toString();
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+            const page = parseInt(this.getAttribute("data-page"));
+            if (!isNaN(page)) {
+                fetchProducts(page);
+            }
         });
     });
-});
+}
 
+// Initialize everything when DOM loads
+document.addEventListener("DOMContentLoaded", function() {
+    // Restore filter states
+    const outOfStockCheckbox = document.getElementById("show-out-of-stock");
+    outOfStockCheckbox.checked = localStorage.getItem("showOutOfStock") === "true";
+
+    // Set up filter event listeners
+    document.querySelectorAll(".category-filter").forEach(checkbox => {
+        checkbox.addEventListener("change", () => fetchProducts(1));
+    });
+    
+    document.querySelector("#searchBox").addEventListener("input", () => {
+        setTimeout(() => fetchProducts(1), 300);
+    });
+    
+    document.querySelector("#sort-by").addEventListener("change", () => fetchProducts(1));
+    
+    outOfStockCheckbox.addEventListener("change", () => {
+        localStorage.setItem("showOutOfStock", outOfStockCheckbox.checked);
+        fetchProducts(1);
+    });
+
+    // Initial load
+    fetchProducts(1);
+});
 
 </script>
 
