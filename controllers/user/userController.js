@@ -104,12 +104,12 @@ async function sendVerificationEmail(email, otp) {
       secure: false,
       requireTLS: true,
       auth: {
-        user: process.env.USER,
+        user: process.env.EMAIL,
         pass: process.env.PASS,
       },
     });
     const info = await transporter.sendMail({
-      from: process.env.USER,
+      from: process.env.EMAIL,
       to: email,
       subject: 'Verify your account',
       text: `Your OTP is:${otp}`,
