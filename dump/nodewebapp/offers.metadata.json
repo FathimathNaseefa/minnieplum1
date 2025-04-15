@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"expiry":{"$numberInt":"1"}},"name":"expiry_1","background":true,"expireAfterSeconds":{"$numberInt":"0"}}],"uuid":"04d871e1d56b43b9afb147fa95437f77","collectionName":"offers","type":"collection"}
