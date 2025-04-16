@@ -112,8 +112,11 @@ async function sendVerificationEmail(email, otp) {
       from: process.env.EMAIL,
       to: email,
       subject: 'Verify your account',
-      text: `Your OTP is:${otp}`,
-      html: `<b>Your OTP:${otp}</b>`,
+      // text: `Your OTP is:${otp}`,
+      // html: `<b>Your OTP:${otp}</b>`,
+      text: `Hello,\n\nYour one-time password (OTP) is: ${otp}\n\nIf you didn't request this, please ignore this email.\n\nThanks`,
+html: `<p>Hello,</p><p>Your one-time password (OTP) is: <strong>${otp}</strong></p><p>If you didn't request this, you can ignore this email.</p><p>Thanks</p>`
+
     });
 
     return info.accepted.length > 0;
