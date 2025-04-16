@@ -25,7 +25,7 @@ const sendVerificationEmail = async (email, otp) => {
       secure: false,
       requireTLS: true,
       auth: {
-        user: process.env.USER,
+        user: process.env.EMAIL,
         pass: process.env.PASS,
       },
     });
