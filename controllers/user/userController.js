@@ -193,8 +193,10 @@ const signup = async (req, res) => {
 const verifyOtp = async (req, res) => {
   try {
     const { otp } = req.body;
+    let ROtp=String(otp).trim()
+    let sessionOtp=String(req.session.userOtp).trim()
 
-    if (otp === req.session.userOtp) {
+    if (ROtp === sessionOtp) {
       const { name, email, phone, password, ref } = req.session.userData;
       const passwordHash = await bcrypt.hash(password, 10);
 
