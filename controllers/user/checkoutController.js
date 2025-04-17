@@ -178,15 +178,12 @@ const getCheckoutPage = async (req, res) => {
       appliedCoupon,
     });
 
-    // ✅ FIX: Replace userId with user._id
+   
     const order = await Order.findOne({
       userId: user._id,
       paymentStatus: 'Pending',
     });
 
-    if (!order) {
-      return res.redirect('/cart'); // Redirect if no order found
-    }
 
     totalAmount = roundToNearestTen(totalAmount);
 originalTotal = roundToNearestTen(originalTotal);
@@ -204,7 +201,7 @@ totalDiscount = roundToNearestTen(totalDiscount);
       categoryOffers,
       appliedCoupon,
       order,
-      orderId: order.orderId,
+      orderId: order ? order.orderId : null, // ✅ Fix here
       roundToFixedNumber, // Pass function to EJS
     });
   } catch (error) {
