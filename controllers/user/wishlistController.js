@@ -156,8 +156,6 @@ const getWishlist = async (req, res) => {
 
 
 
-
-
 module.exports = {
   getWishlist,
   wishlistAdd,

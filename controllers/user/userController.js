@@ -289,7 +289,8 @@ const resendOtp = async (req, res) => {
 const loadLogin = async (req, res) => {
   try {
     if (!req.session.user) {
-      return res.render('login');
+      const redirectTo = req.query.redirect || '/';
+      return res.render('login',{ redirectTo});
     } else {
       res.redirect('/');
     }
@@ -303,46 +304,81 @@ const loadLogin = async (req, res) => {
 
 
 
+// const login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // Find the user by email
+//     const findUser = await User.findOne({ email });
+
+//     if (!findUser) {
+//       return res.render('login', { message: 'User not found' });
+//     }
+
+//     // Check if the user is blocked
+//     if (findUser.isBlocked) {
+//       return res.render('login', { message: 'User is blocked by admin' });
+//     }
+
+//     // Compare the provided password with the hashed password in the database
+//     const passwordMatch = await bcrypt.compare(password, findUser.password);
+
+//     if (!passwordMatch) {
+//       return res.render('login', { message: 'Incorrect Password' });
+//     }
+
+//     // Set session data
+//     req.session.user = findUser._id; // Store user ID
+//     req.session.email = findUser.email; // Store email
+//     req.session.name = findUser.name; // Store email
+    
+//     req.session.save(); // Save the session
+
+    
+//     res.redirect('/'); // Redirect to home after successful login
+//   } catch (error) {
+//     console.error('Login error:', error);
+//     res.render('login', { message: 'Login failed. Please try again later' });
+//   }
+// };
+
+
+
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, redirectTo } = req.body;
 
-    // Find the user by email
     const findUser = await User.findOne({ email });
 
     if (!findUser) {
-      return res.render('login', { message: 'User not found' });
+      return res.render('login', { message: 'User not found', redirectTo });
     }
 
-    // Check if the user is blocked
     if (findUser.isBlocked) {
-      return res.render('login', { message: 'User is blocked by admin' });
+      return res.render('login', { message: 'User is blocked by admin', redirectTo });
     }
 
-    // Compare the provided password with the hashed password in the database
     const passwordMatch = await bcrypt.compare(password, findUser.password);
 
     if (!passwordMatch) {
-      return res.render('login', { message: 'Incorrect Password' });
+      return res.render('login', { message: 'Incorrect Password', redirectTo });
     }
 
-    // Set session data
-    req.session.user = findUser._id; // Store user ID
-    req.session.email = findUser.email; // Store email
-    req.session.name = findUser.name; // Store email
-    
-    req.session.save(); // Save the session
+    req.session.user = findUser._id;
+    req.session.email = findUser.email;
+    req.session.name = findUser.name;
+    req.session.save();
 
-    
-    res.redirect('/'); // Redirect to home after successful login
+    // Redirect to original page (e.g. /cart) if available
+    res.redirect(redirectTo || '/');
   } catch (error) {
     console.error('Login error:', error);
-    res.render('login', { message: 'Login failed. Please try again later' });
+    res.render('login', {
+      message: 'Login failed. Please try again later',
+      redirectTo: req.body.redirectTo || '/',
+    });
   }
 };
-
-
-
 
 
 

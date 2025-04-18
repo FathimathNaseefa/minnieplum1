@@ -31,7 +31,7 @@ const userAuth = async (req, res, next) => {
             return res.status(500).send('Internal Server Error');
         }
     } else {
-        return res.redirect('/login');
+        return res.redirect('/login?redirect=' + encodeURIComponent(req.originalUrl));
     }
 };
 

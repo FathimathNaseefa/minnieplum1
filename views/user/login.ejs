@@ -127,6 +127,8 @@
           <div class="login-form mt-5">
             <h3 class="card-title text-center">Log In</h3>
             <form id="loginform" method="post" action="/login">
+              <input type="hidden" name="redirectTo" value="<%= redirectTo || '/' %>">
+
               <div class="form-group mt-3px">
                 <label for="email">Email address</label>
                 <input

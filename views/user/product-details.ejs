@@ -385,6 +385,11 @@
     </div>
 
 </section>
+<script>
+    // Safely embed user data
+    const user = <%= JSON.stringify(user || null) %>;
+</script>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> 
@@ -446,6 +451,15 @@ function addToCart(productId, stock) {
     const maxStock = stock;
     const quantity = parseInt(quantityInput?.value || 1);
 
+
+    // Check if the user is logged in (assuming you pass `user` to the template)
+    if (!user) { // `user` is not logged in
+        Swal.fire("Please log in", "You need to log in to add items to your cart.", "warning").then(() => {
+            window.location.href = "/login?redirect=/cart"; // Redirect to the login page
+        });
+        return; // Exit function if user is not logged in
+    }
+
     if (!selectedSize) {
         Swal.fire("Error", "Please select a size.", "error");
         return;
@@ -459,6 +473,11 @@ function addToCart(productId, stock) {
         addToCartBtn.disabled = true;
         return;
     }
+
+
+
+
+   
 
     // ✅ Check if the product is already in the cart
     fetch('/checkCart', {
@@ -532,10 +551,27 @@ function updateCartCount(count) {
 
 
 
+
 function toggleWishlist(productId) {
-    fetch(`/wishlist/add/${productId}`, { method: 'POST' })
-    .then(response => response.json())
-    .then(data => {
+    fetch(`/wishlist/add/${productId}`, {
+        method: 'POST',
+        headers: {
+            "Accept": "application/json"
+        }
+    })
+    .then(async (response) => {
+        const contentType = response.headers.get("content-type");
+
+        // Handle redirect to login or other HTML error page
+        if (!contentType || !contentType.includes("application/json")) {
+            // Save the product to wishlist later after login (optional)
+            localStorage.setItem("pendingWishlistProduct", productId);
+            window.location.href = "/login";  // Redirect to login
+            return;
+        }
+
+        const data = await response.json();
+
         if (data.success) {
             const wishlistIcon = document.getElementById(`wishlist-icon-${productId}`);
 
@@ -554,6 +590,12 @@ function toggleWishlist(productId) {
     })
     .catch(error => console.error("Error:", error));
 }
+
+
+
+
+
+
 
 // Function to Show a Popup Message
 function showPopup(message) {

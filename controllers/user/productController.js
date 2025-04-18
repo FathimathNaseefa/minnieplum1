@@ -10,6 +10,7 @@ const productDetails = async (req, res) => {
     const userId = req.session.user;
     const userData = await User.findById(userId);
     const productId = req.query.id;
+    const user=req.session.user || null
 
     // Fetch product and populate category, pdtOffer, and catOffer
     const product = await Product.findById(productId)
@@ -17,6 +18,8 @@ const productDetails = async (req, res) => {
       .populate('category')
       .populate('pdtOffer', 'discountValue discountType') // Populate product offer
       .populate('catOffer', 'discountValue discountType'); // Populate category offer
+
+     
 
     const findCategory = product.category;
 
@@ -86,6 +89,7 @@ const productDetails = async (req, res) => {
       reviews: reviews,
       size: product.size,
       isWishlisted,
+      user
     });
   } catch (error) {
     console.error('Error fetching product details', error);

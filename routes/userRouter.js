@@ -195,17 +195,15 @@ router.post('/remove-coupon', userAuth, checkoutController.removeCoupon);
 
 //wishlist
 router.post(
-  '/wishlist/add/:productId',
-  userAuth,
+  '/wishlist/add/:productId',userAuth,
   wishlistController.wishlistAdd
 );
 router.post(
-  '/wishlist/remove/:productId',
-  userAuth,
+  '/wishlist/remove/:productId',userAuth,
   wishlistController.wishlistRemove
 );
-router.get('/wishlist', userAuth, wishlistController.getWishlist);
-router.post('/wishlist/toggle', userAuth, wishlistController.toggle);
+router.get('/wishlist',userAuth, wishlistController.getWishlist);
+router.post('/wishlist/toggle',userAuth, wishlistController.toggle);
 
 
 
