@@ -255,6 +255,9 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+
+
+
 const resendOtp = async (req, res) => {
   try {
     const { email } = req.session.userData;
@@ -299,48 +302,6 @@ const loadLogin = async (req, res) => {
   }
 };
 
-
-
-
-
-
-// const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     // Find the user by email
-//     const findUser = await User.findOne({ email });
-
-//     if (!findUser) {
-//       return res.render('login', { message: 'User not found' });
-//     }
-
-//     // Check if the user is blocked
-//     if (findUser.isBlocked) {
-//       return res.render('login', { message: 'User is blocked by admin' });
-//     }
-
-//     // Compare the provided password with the hashed password in the database
-//     const passwordMatch = await bcrypt.compare(password, findUser.password);
-
-//     if (!passwordMatch) {
-//       return res.render('login', { message: 'Incorrect Password' });
-//     }
-
-//     // Set session data
-//     req.session.user = findUser._id; // Store user ID
-//     req.session.email = findUser.email; // Store email
-//     req.session.name = findUser.name; // Store email
-    
-//     req.session.save(); // Save the session
-
-    
-//     res.redirect('/'); // Redirect to home after successful login
-//   } catch (error) {
-//     console.error('Login error:', error);
-//     res.render('login', { message: 'Login failed. Please try again later' });
-//   }
-// };
 
 
 

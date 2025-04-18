@@ -89,7 +89,7 @@ const productDetails = async (req, res) => {
       reviews: reviews,
       size: product.size,
       isWishlisted,
-      user
+      
     });
   } catch (error) {
     console.error('Error fetching product details', error);

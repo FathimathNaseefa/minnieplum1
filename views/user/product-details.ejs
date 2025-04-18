@@ -387,7 +387,7 @@
 </section>
 <script>
     // Safely embed user data
-    const user = <%= JSON.stringify(user || null) %>;
+    const user = <%- JSON.stringify(user || null) %>;
 </script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -420,26 +420,55 @@
     }
 
 
-function changeQuantity(amount) {
+
+
+
+    function changeQuantity(amount) {
     const quantityInput = document.getElementById("quantity");
     let currentQuantity = parseInt(quantityInput.value);
-    let maxStock = parseInt(quantityInput.getAttribute("data-max-stock")); // Read stock from attribute
+    let maxStock = parseInt(quantityInput.getAttribute("data-max-stock")); // Actual stock
 
-    if (isNaN(maxStock) || maxStock <= 0) {
-        quantityInput.value = 1; // Reset to 1 if no stock
+    const maxAllowed = Math.min(maxStock, 5); // Limit to 5 or stock, whichever is less
+
+    if (isNaN(maxAllowed) || maxAllowed <= 0) {
+        quantityInput.value = 1;
         return;
     }
 
-    currentQuantity += amount;
+    let newQuantity = currentQuantity + amount;
 
-    if (currentQuantity < 1) {
-        currentQuantity = 1;
-    } else if (currentQuantity > maxStock) {
-        currentQuantity = maxStock; // Prevent exceeding stock
+    if (newQuantity < 1) {
+        newQuantity = 1;
     }
 
-    quantityInput.value = currentQuantity;
+    // If new quantity exceeds the available stock
+    if (newQuantity > maxStock) {
+        newQuantity = maxStock; // Set to max available stock
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Stock Limit Reached',
+            text: `You can only add up to ${maxStock} units of this product.`, // Message shows actual stock available
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+    // If new quantity exceeds the 5-unit limit
+    else if (newQuantity > 5) {
+        newQuantity = 5; // Set to max 5 units
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Purchase Limit Reached',
+            text: 'You can only add up to 5 units of this product.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
+    quantityInput.value = newQuantity;
 }
+
 
 
 function addToCart(productId, stock) {
@@ -452,13 +481,18 @@ function addToCart(productId, stock) {
     const quantity = parseInt(quantityInput?.value || 1);
 
 
-    // Check if the user is logged in (assuming you pass `user` to the template)
-    if (!user) { // `user` is not logged in
+
+
+    if (!user) {
+        const currentUrl = window.location.pathname + window.location.search;
         Swal.fire("Please log in", "You need to log in to add items to your cart.", "warning").then(() => {
-            window.location.href = "/login?redirect=/cart"; // Redirect to the login page
+            window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
         });
-        return; // Exit function if user is not logged in
+        return;
     }
+
+
+
 
     if (!selectedSize) {
         Swal.fire("Error", "Please select a size.", "error");
@@ -562,13 +596,21 @@ function toggleWishlist(productId) {
     .then(async (response) => {
         const contentType = response.headers.get("content-type");
 
+       
+
         // Handle redirect to login or other HTML error page
-        if (!contentType || !contentType.includes("application/json")) {
-            // Save the product to wishlist later after login (optional)
-            localStorage.setItem("pendingWishlistProduct", productId);
-            window.location.href = "/login";  // Redirect to login
-            return;
-        }
+if (!contentType || !contentType.includes("application/json")) {
+    // Save the product to wishlist later after login (optional)
+    localStorage.setItem("pendingWishlistProduct", productId);
+
+    // Get current URL (path + query params)
+    const currentUrl = window.location.pathname + window.location.search;
+
+    // Redirect to login and pass the current page as a redirect target
+    window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+    return;
+}
+
 
         const data = await response.json();
 
