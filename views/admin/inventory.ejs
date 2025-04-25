@@ -155,107 +155,160 @@ h1{
 
 </style>   
 
+<h1>Inventory</h1>
 
-<h1 >Inventory</h1>
 <table class="table">
-    <thead>
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Size</th>
+      <th>Color</th>
+      <th>Stock Quantity</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% inventory.forEach((item) => { %>
       <tr>
-        <th>Product</th>
-        <th>Size</th>
-        <th>Color</th>
-        <th>Stock Quantity</th>
-        <th>Actions</th>
+        <td><%= item.productName %></td>
+        <td><%= item.size %></td>
+        <td><%= item.color %></td>
+        <td class="stock-value"><%= item.stock %></td>
+        <td>
+          <form class="stock-update-form" data-product-id="<%= item._id %>">
+            <input
+              type="number"
+              name="newStock"
+              min="0"
+              value="<%= item.stock %>"
+              required
+              class="form-control d-inline w-50"
+            />
+            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+          </form>
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      <% inventory.forEach((item) => { %>
-        <tr>
-          <td><%= item.productName %></td>
-          <td><%= item.size %></td>
-          <td><%= item.color %></td>
-          <td><%= item.stock %></td>
-          <td>
-            <form action="/admin/update-stock" method="POST">
-              <input type="hidden" name="productId" value="<%= item._id %>">
-              <input type="number" name="newStock" min="0" value="<%= item.stock %>">
-              <button type="submit" class="btn btn-primary">Update</button>
-            </form> 
-            
-            
-          </td>
-        </tr>
-      <% }); %>
-    </tbody>
-  </table>
-  
-  <script>
-    
-   document.addEventListener("DOMContentLoaded", function () {
-    const rowsPerPage = 5; // Change as needed
-    const rows = document.querySelectorAll("tbody tr");
-    const totalPages = Math.ceil(rows.length / rowsPerPage);
-    let currentPage = 1;
+    <% }); %>
+  </tbody>
+</table>
 
-    function showPage(page) {
-        rows.forEach((row, index) => {
-            row.style.display = (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage) ? "table-row" : "none";
-        });
-    }
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    function createPagination() {
-        const paginationDiv = document.createElement("div");
-        paginationDiv.classList.add("pagination");
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const rowsPerPage = 5;
+  const rows = document.querySelectorAll("tbody tr");
+  const totalPages = Math.ceil(rows.length / rowsPerPage);
+  let currentPage = 1;
 
-        const prevBtn = document.createElement("a");
-        prevBtn.href = "#";
-        prevBtn.textContent = "Previous";
-        prevBtn.classList.add("prev-btn");
-        prevBtn.style.display = currentPage === 1 ? "none" : "inline-block";
-        prevBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (currentPage > 1) {
-                currentPage--;
-                updatePagination();
-            }
-        });
+  function showPage(page) {
+    rows.forEach((row, index) => {
+      row.style.display = (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage)
+        ? "table-row"
+        : "none";
+    });
+  }
 
-        const pageInfo = document.createElement("span");
-        pageInfo.classList.add("current-page");
-        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  function createPagination() {
+    const paginationDiv = document.createElement("div");
+    paginationDiv.classList.add("pagination", "mt-3");
 
-        const nextBtn = document.createElement("a");
-        nextBtn.href = "#";
-        nextBtn.textContent = "Next";
-        nextBtn.classList.add("next-btn");
-        nextBtn.style.display = currentPage === totalPages ? "none" : "inline-block";
-        nextBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (currentPage < totalPages) {
-                currentPage++;
-                updatePagination();
-            }
-        });
+    const prevBtn = document.createElement("a");
+    prevBtn.href = "#";
+    prevBtn.textContent = "Previous";
+    prevBtn.classList.add("btn", "btn-outline-secondary", "me-2", "prev-btn");
+    prevBtn.style.display = currentPage === 1 ? "none" : "inline-block";
 
-        paginationDiv.appendChild(prevBtn);
-        paginationDiv.appendChild(pageInfo);
-        paginationDiv.appendChild(nextBtn);
+    const nextBtn = document.createElement("a");
+    nextBtn.href = "#";
+    nextBtn.textContent = "Next";
+    nextBtn.classList.add("btn", "btn-outline-secondary", "next-btn");
+    nextBtn.style.display = currentPage === totalPages ? "none" : "inline-block";
 
-        document.querySelector(".table").after(paginationDiv);
-    }
+    const pageInfo = document.createElement("span");
+    pageInfo.classList.add("current-page", "me-2");
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 
-    function updatePagination() {
-        showPage(currentPage);
-        document.querySelector(".current-page").textContent = `Page ${currentPage} of ${totalPages}`;
+    prevBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+      }
+    });
 
-        document.querySelector(".prev-btn").style.display = currentPage === 1 ? "none" : "inline-block";
-        document.querySelector(".next-btn").style.display = currentPage === totalPages ? "none" : "inline-block";
-    }
+    nextBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+      }
+    });
 
+    paginationDiv.appendChild(prevBtn);
+    paginationDiv.appendChild(pageInfo);
+    paginationDiv.appendChild(nextBtn);
+    document.querySelector(".table").after(paginationDiv);
+  }
+
+  function updatePagination() {
     showPage(currentPage);
-    if (totalPages > 1) createPagination();
-});
+    document.querySelector(".current-page").textContent = `Page ${currentPage} of ${totalPages}`;
+    document.querySelector(".prev-btn").style.display = currentPage === 1 ? "none" : "inline-block";
+    document.querySelector(".next-btn").style.display = currentPage === totalPages ? "none" : "inline-block";
+  }
 
+  showPage(currentPage);
+  if (totalPages > 1) createPagination();
+
+  // AJAX update with SweetAlert2
+  document.querySelectorAll(".stock-update-form").forEach((form) => {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const productId = form.dataset.productId;
+      const newStock = form.querySelector("input[name='newStock']").value;
+
+      try {
+        const response = await fetch("/admin/update-stock", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ productId, newStock })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Update table cell
+          form.closest("tr").querySelector(".stock-value").textContent = newStock;
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Stock Updated',
+            text: 'Stock updated successfully!',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: result.error || 'Something went wrong'
+          });
+        }
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Server Error',
+          text: 'Something went wrong while updating stock.'
+        });
+      }
+    });
+  });
+});
 </script>
 
-  <%- include("../../views/partials/admin/footer") %>
-  
+<%- include("../../views/partials/admin/footer") %>

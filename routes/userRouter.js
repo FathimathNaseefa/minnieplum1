@@ -77,8 +77,6 @@ router.get('/userProfile', userAuth, profileController.userProfile);
 router.get('/change-email', userAuth, profileController.changeEmail);
 router.post('/change-email', userAuth, profileController.changeEmailValid);
 router.post('/verify-email-otp', userAuth, profileController.verifyEmailOtp);
-router.get('/update-email', userAuth, profileController.getUpdatePage);
-router.post('/update-email', userAuth, profileController.updateEmail);
 router.get('/change-password', userAuth, profileController.changePassword);
 router.post(
   '/change-password',
@@ -118,7 +116,8 @@ router.get('/cart', userAuth, cartController.getCartPage);
 router.post('/addToCart', userAuth, cartController.addToCart);
 router.post('/changeQuantity', userAuth, cartController.changeQuantity);
 router.get('/deleteItem', userAuth, cartController.deleteProduct);
-router.post("/checkCart",userAuth, cartController.checkCart)
+router.post("/checkCart",userAuth, cartController.checkCart);
+router.post('/validate-cart',userAuth,cartController.validateCart)
 
 
 //checkout management

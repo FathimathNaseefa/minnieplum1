@@ -264,6 +264,7 @@
 
 
     
+   
 
     function confirmRemove(productId) {
     Swal.fire({
@@ -307,13 +308,37 @@
     });
 }
 
+
 function handleCheckout(cartLength) {
-        if (cartLength === 0) {
-            $("#cartEmptyModal").modal("show"); // Show Bootstrap Modal for Empty Cart
-        } else {
-            window.location.href = "/checkout"; // ✅ Redirect to Checkout Page
-        }
+    if (cartLength === 0) {
+        $("#cartEmptyModal").modal("show");
+    } else {
+        fetch('/validate-cart', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid) {
+                window.location.href = "/checkout";
+            } else {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Cart Issue",
+                    text: data.message || "Some products in your cart are no longer available.",
+                    confirmButtonText: "Okay"
+                }).then(() => {
+                    location.reload(); // Refresh cart to reflect changes
+                });
+            }
+        })
+        .catch(err => {
+            console.error("🔥 Error validating cart:", err);
+            Swal.fire("Error", "Could not validate cart. Please try again.", "error");
+        });
     }
+}
+
 
 </script> 
 

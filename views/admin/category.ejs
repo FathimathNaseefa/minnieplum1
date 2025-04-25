@@ -182,16 +182,26 @@
                       <span class="badge rounded-pill alert-danger" style="width: 60px;color: red;">Unlisted</span>
                      <%}%>
                     </td> 
-                    <td class="text-start">
-                      <%if(category.isListed){%>
-                      <button class="btn btn-danger" style="width: 70px">
-                        <a href="/admin/listCategory?id=<%=category._id%>" class="text-white">Unlist</a>
-                      </button>
-                      <%}else{%>
-                      <button class="btn btn-success" style="width: 70px">
-                        <a href="/admin/unlistCategory?id=<%=category._id%>" class="text-white">List</a>
-                      </button><%}%>
+                    
+
+                     <td class="text-start">
+                      <% if (category.isListed) { %>
+                        <button class="btn btn-danger" style="width: 70px">
+                          <a href="#" onclick="confirmToggleListStatus('<%= category._id %>', true, <%= currentPag %>)" class="text-white">Unlist</a>
+                        </button>
+                      <% } else { %>
+                        <button class="btn btn-success" style="width: 70px">
+                          <a href="#" onclick="confirmToggleListStatus('<%= category._id %>', false, <%= currentPag %>)" class="text-white">List</a>
+                        </button>
+                      <% } %>
                     </td>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     <td class="text-start">
                       <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info text-white">Edit</a>
                     </td>
@@ -421,6 +431,29 @@
         
       }
     }
+
+    function confirmToggleListStatus(categoryId, isCurrentlyListed, currentPage) {
+  const action = isCurrentlyListed ? "Unlist" : "List";
+  const color = isCurrentlyListed ? "#d33" : "#28a745";
+
+  Swal.fire({
+    title: `Are you sure you want to ${action} this category?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: color,
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: `Yes, ${action}`
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const url = isCurrentlyListed
+        ? `/admin/listCategory?id=${categoryId}&page=${currentPage}`
+        : `/admin/unlistCategory?id=${categoryId}&page=${currentPage}`;
+      window.location.href = url;
+    }
+  });
+}
+
+
   </script>
 <%- include("../../views/partials/admin/footer") %>
 

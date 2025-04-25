@@ -98,53 +98,92 @@
 </head>
 
 <body>
-    <h1>Order Details</h1>
-
-    <div class="order-container">
-        <div class="order-info">
-            <p><strong>Order ID:</strong> <%= orderId %></p>
-            <p><strong>User ID:</strong> <%= orders.userId.name %></p>
-            <p><strong>Status:</strong> <%= orders.status %></p>
-            <p><strong>Payment Method:</strong> <%= orders.paymentMethod %></p>
-            <p><strong>Total Amount:</strong> ₹<%= finalAmount %></p>
-        </div>
-
-        <h2>Ordered Items</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>product Name:</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% orders.items.forEach(item => { %>
-                    <tr>
-                        
-                        <td><%= item.productId ? item.productId.productName : 'Product Not Found' %></td> <!-- ✅ Ensure safe access -->
-                        <td><%= item.quantity %></td>
-                        <td>₹<%= item.finalPrice %></td>
-                        <td>₹<%= item.quantity * item.finalPrice %></td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
-
-        <p class="total">Total Amount: ₹<%= finalAmount %></p>
-
-        <!-- Add Accept and Reject Buttons -->
-        <% if (orders.status === 'Return Requested') { %>
-            <div class="action-buttons">
-                <button id="accept-btn">Accept Return</button>
-                <button id="reject-btn">Reject Return</button>
-            </div>
-        <% } %>
-        
-    </div>
-    <p> Order ID: <%= orders._id %></p>
     
+<h1>Order Details</h1>
+
+<div class="order-container">
+    <div class="order-info">
+        <p><strong>Order ID:</strong> <%= orders._id %></p>
+        <p><strong>User ID:</strong> <%= orders.userId.name %></p>
+        <p><strong>Status:</strong> <%= orders.status %></p>
+        <p><strong>Payment Method:</strong> <%= orders.paymentMethod %></p>
+        <p><strong>Total Amount:</strong> ₹<%= finalAmount %></p>
+    </div>
+
+    <!-- Display Shipping Address -->
+    <div class="shipping-address">
+        <h3>Shipping Address</h3><br>
+        <p><strong> <%= orders.shippingAddress.name %></strong><br>
+        <!-- <p><strong>Address:</strong> <%= orders.shippingAddress.address %></p> -->
+        <%= orders.shippingAddress.addressLine1 %><br>
+        <%= orders.shippingAddress.city %>
+        <%= orders.shippingAddress.state%><br>
+        <%= orders.shippingAddress.country %>
+        <%= orders.shippingAddress.postalCode %><br>
+        <%= orders.shippingAddress.phoneNumber %></p>
+    </div>
+
+    <h2>Ordered Items</h2>
+    <table>
+       
+
+<thead>
+    <tr>
+        <th>Product Image</th>
+        <th>Product Name</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Discount</th>
+        <th>Subtotal</th>
+    </tr>
+</thead>
+<tbody>
+    <% orders.items.forEach(item => { 
+        const roundedPrice = Math.round(item.price / 10) * 10;
+        const roundedFinalPrice = Math.round(item.finalPrice / 10) * 10;
+        const roundedDiscount = Math.round((item.price - item.finalPrice) / 10) * 10;
+        <!-- const roundedSubtotal = Math.round(item.quantity * item.finalPrice / 10) * 10; -->
+        const roundedSubtotal = Math.round((item.quantity * roundedPrice - roundedDiscount) / 10) * 10;
+    %>
+        <tr>
+            <td>
+                <% if (item.productId.productImage && item.productId.productImage.length > 0) { %>
+                    <img src="/uploads/re-image/<%= item.productId.productImage[0] %>" 
+                         alt="Product Image" width="50" height="50" class="me-2" />
+                <% } else { %>
+                    <span>No Image Available</span>
+                <% } %>
+            </td>
+
+            <td><%= item.productId ? item.productId.productName : 'Product Not Found' %></td>
+            <td><%= item.quantity %></td>
+            <td>₹<%= roundedPrice %></td>
+            <td>- ₹<%= roundedDiscount %></td>
+            <td>₹<%= roundedSubtotal %></td>
+        </tr>
+    <% }) %>
+</tbody>
+
+
+
+
+
+
+
+</table>
+
+<!-- Return Action Buttons -->
+<% if (orders.status === 'Return Requested') { %>
+    <div class="action-buttons">
+        <button id="accept-btn">Accept Return</button>
+        <button id="reject-btn">Reject Return</button>
+    </div>
+<% } %>
+
+<p>Order ID: <%= orders._id %></p>
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Use _id from EJS instead of orderId
@@ -206,7 +245,6 @@
     });
 </script>
 
-    
-    
 </body>
 </html>
+

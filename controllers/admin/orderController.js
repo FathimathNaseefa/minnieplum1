@@ -60,6 +60,7 @@ const changeOrderStatus = async (req, res) => {
 
 
 
+
 const getOrderDetailsPageAdmin = async (req, res) => {
   try {
     const orderId = req.query.id;
@@ -69,12 +70,14 @@ const getOrderDetailsPageAdmin = async (req, res) => {
     if (orderId.startsWith('order_rcptid_')) {
       findOrder = await Order.findOne({ orderId })
         .populate('userId', 'name email phone') 
-        .populate('items.productId', 'productName salePrice') 
+        .populate('items.productId', 'productName salePrice productImage category') // Populating product details
+        .populate('shippingAddress')  // Populating shipping address, assuming it's a reference to UserAddress
         .exec();
     } else {
       findOrder = await Order.findById(orderId)
         .populate('userId', 'name email phone')
-        .populate('items.productId', 'productName salePrice')
+        .populate('items.productId', 'productName salePrice productImage category')
+        .populate('shippingAddress')  // Populating shipping address
         .exec();
     }
 
@@ -105,6 +108,7 @@ const getOrderDetailsPageAdmin = async (req, res) => {
 
     console.log("Final Processed Order:", findOrder);
 
+    // Render the 'order-details-admin' view with populated order details
     res.render('order-details-admin', {
       orders: findOrder,
       orderId: orderId,
@@ -115,6 +119,15 @@ const getOrderDetailsPageAdmin = async (req, res) => {
     res.redirect('/pageerror');
   }
 };
+
+
+
+
+
+
+
+
+
 
 // 🛒 Place Order (Only COD)
 const placeOrder = async (req, res) => {
@@ -205,16 +218,14 @@ const getInventory = async (req, res) => {
   }
 };
 
+
+
 const updateStock = async (req, res) => {
   try {
-    console.log('Received Request Body:', req.body); // Debugging log
-
     const { productId, newStock } = req.body;
 
     if (!productId || isNaN(newStock) || newStock < 0) {
-      return res
-        .status(400)
-        .json({ error: 'Invalid stock value or product ID' });
+      return res.status(400).json({ error: 'Invalid stock value or product ID' });
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -227,12 +238,13 @@ const updateStock = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    res.redirect('/admin/inventory');
+    return res.status(200).json({ message: 'Stock updated successfully' });
   } catch (err) {
     console.error('Stock update error:', err);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 const getReturnRequests = async (req, res) => {
   try {

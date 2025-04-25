@@ -1,78 +1,75 @@
+
+
+
+
 <%- include("../../views/partials/user/header") %>
 
 <section class="content-main mt-80 mb-80" style="margin-top: 100px;">
    <div class="card mx-auto card-login col-4" style="background-color:#e4a2b0 ;">
        <div class="card-body">
-           <h4 class="card-title mb-4">Enter Current Email</h4>
+           <h4 class="card-title mb-4">Enter New Email</h4>
 
          <% if (typeof message !== 'undefined' && message.length > 0) { %>
             <div class="alert alert-danger text-center" id="server-error"> 
-                
                 <%= message %>
             </div>
         <% } %>
 
-
            <form method="post" action="/change-email" onsubmit="return validateLoginForm()">
                <div class="mb-3">
-                    <input class="form-control" name="email" placeholder="Email" type="text" id="email"> 
-                   
-
-                   <div class="error-message" id="email-error"></div>
+                    <input class="form-control" name="new_email" placeholder="New Email" type="text" id="new-email">
+                    <div class="error-message" id="email-error"></div>
                </div>
-               <div class="mb-4">
-                   <button type="submit" class="btn btn-primary w-100">Verify</button>
+
+               <div class="mb-3">
+                   <button type="submit" class="btn btn-primary w-100">Send OTP</button>
                </div>
            </form>
-         
-         
        </div>
    </div>
 </section>
-<script>
-   
-   
 
+<script>
     function validateLoginForm() {
-    const emailInput = document.getElementById('email');
+    const newEmailInput = document.getElementById('new-email');
     const emailError = document.getElementById('email-error');
-    const emailValue = emailInput.value.trim();
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;  // Improved regex
+    const newEmailValue = newEmailInput.value.trim();
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     // Reset previous errors
     emailError.textContent = '';
-    emailInput.classList.remove('is-invalid');
+    newEmailInput.classList.remove('is-invalid');
 
-    if (emailValue === '') {
-        emailError.textContent = 'Please enter your email.';
-        emailInput.classList.add('is-invalid');
+    if (newEmailValue === '') {
+        emailError.textContent = 'Please enter your new email.';
+        newEmailInput.classList.add('is-invalid');
         return false;
-    } else if (!emailPattern.test(emailValue)) {  // Use test() for better readability
+    } else if (!emailPattern.test(newEmailValue)) {
         emailError.textContent = 'Please enter a valid email address.';
-        emailInput.classList.add('is-invalid');
+        newEmailInput.classList.add('is-invalid');
         return false;
     }
 
-    return true;  // If everything is fine, allow form submission
+    return true;  // Allow form submission if everything is correct
 }
 
 // Optional: Real-time validation (removes error when user types)
-document.getElementById('email').addEventListener('input', function () {
-    const emailInput = document.getElementById('email');
+document.getElementById('new-email').addEventListener('input', function () {
+    const newEmailInput = document.getElementById('new-email');
     const emailError = document.getElementById('email-error');
     const serverError = document.getElementById('server-error');
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    if (emailPattern.test(emailInput.value.trim())) {
+    if (emailPattern.test(newEmailInput.value.trim())) {
         emailError.textContent = '';
-        emailInput.classList.remove('is-invalid');
+        newEmailInput.classList.remove('is-invalid');
 
-         if (serverError) {
+        if (serverError) {
             serverError.style.display = 'none';
-         }
-
+        }
     }
 });
 
 </script>
+
 <%- include("../../views/partials/user/footer") %>

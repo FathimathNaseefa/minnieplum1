@@ -133,11 +133,12 @@ const removeCategoryOffer = async (req, res) => {
   }
 };
 
+
 const getListCategory = async (req, res) => {
   try {
-    let id = req.query.id;
+    const { id, page } = req.query;
     await Category.updateOne({ _id: id }, { $set: { isListed: false } });
-    res.redirect('/admin/category');
+    res.redirect(`/admin/category?page=${page || 1}`);
   } catch (error) {
     res.redirect('/pageerror');
   }
@@ -145,13 +146,17 @@ const getListCategory = async (req, res) => {
 
 const getUnlistCategory = async (req, res) => {
   try {
-    let id = req.query.id;
+    const { id, page } = req.query;
     await Category.updateOne({ _id: id }, { $set: { isListed: true } });
-    res.redirect('/admin/category');
+    res.redirect(`/admin/category?page=${page || 1}`);
   } catch (error) {
     res.redirect('/pageerror');
   }
 };
+
+
+
+
 
 const getEditCategory = async (req, res) => {
   try {
